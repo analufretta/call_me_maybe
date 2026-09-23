@@ -1,6 +1,7 @@
-.PHONY: install run debug clean lint lint-strict
+.PHONY: install run debug clean fclean re lint lint-strict
 
 # Default input/output paths (overridable on the command line)
+# Question: how can I override this in the command line?
 FUNCTIONS ?= data/input/functions_definition.json
 INPUT     ?= data/input/function_calling_tests.json
 OUTPUT    ?= data/output/function_calling_results.json
@@ -9,13 +10,15 @@ MYPY_FLAGS = --warn-return-any --warn-unused-ignores --ignore-missing-imports \
              --disallow-untyped-defs --check-untyped-defs
 
 install:
-	uv sync
+	@command -v uv >/dev/null 2>&1 || \
+	{ echo "uv missing. Installing..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
+	@export PATH="$$HOME/.local/bin:$$PATH"; uv sync
 
 run:
 	uv run python -m src \
 		--functions_definition $(FUNCTIONS) \
 		--input $(INPUT) \
-		--output $(OUTPUT)
+#  		--output $(OUTPUT)
 
 debug:
 	uv run python -m pdb -m src \
@@ -28,10 +31,17 @@ clean:
 	rm -rf .mypy_cache .pytest_cache
 	find . -type f -name '*.pyc' -delete
 
+fclean: clean
+	rm -rf .venv
+
+re: fclean install
+
 lint:
-	flake8 .
-	mypy . $(MYPY_FLAGS)
+	uv run flake8 . --extend-exclude .venv/,llm_sdk/
+	uv run mypy . --exclude '(\.venv|llm_sdk)/' --warn-return-any \
+	--warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
+	--check-untyped-defs
 
 lint-strict:
-	flake8 .
-	mypy . --strict
+	uv run flake8 . --extend-exclude .venv/,llm_sdk/
+	uv run mypy . --exclude '(\.venv|llm_sdk)/' --strict
