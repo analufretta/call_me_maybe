@@ -5,8 +5,11 @@ description = "Function calling for LLMs via constrained decoding"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "numpy",
+    "llm-sdk",
+    "numpy<2",
     "pydantic>=2",
+    "torch<2.3",
+    "transformers==4.51.3",
 ]
 
 [dependency-groups]
@@ -22,3 +25,11 @@ python_version = "3.10"
 [tool.flake8]
 max-line-length = 100
 extend-exclude = ["llm_sdk", ".venv"]
+
+[tool.uv.workspace]
+members = [
+    "llm_sdk",
+]
+
+[tool.uv.sources]
+llm-sdk = { workspace = true }
