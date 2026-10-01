@@ -6,6 +6,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from src.models import FunctionDef, TestPrompt
+from src.vocabulary import Vocabulary
 
 
 def load_functions(path: Path) -> list[FunctionDef]:
@@ -31,6 +32,34 @@ def load_functions(path: Path) -> list[FunctionDef]:
         raise SystemExit(f"error: invalid JSON in {path}: {e}")
     try:
         return [FunctionDef(**f) for f in data]
+    except ValidationError as e:
+        raise SystemExit(f"error: bad structure in {path}: {e}")
+
+
+def load_vocab(path: Path) -> Vocabulary:
+    """Read, parse and build the token maps from the model vocab file.
+
+    Same three guards as load_functions:
+      1. read the file to text    (FileNotFoundError if missing)
+      2. parse the text as JSON   (JSONDecodeError if malformed)
+      3. build the maps           (ValidationError if wrong shape)
+
+    vocab.json shape is ``{"token_string": id, ...}``. We keep that as
+    token_to_id and invert it to id_to_token.
+    """
+    try:
+        raw = path.read_text()
+    except FileNotFoundError:
+        raise SystemExit(f"error: file not found: {path}")
+    try:
+        token_id = json.loads(raw)
+        # print("token to id (first 5):", dict(list(token_id.items())[:5]))
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"error: invalid JSON in {path}: {e}")
+    try:
+        id_token = {i: tok for tok, i in token_id.items()}
+        # print("id to token (first 5):", dict(list(id_token.items())[:5]))
+        return Vocabulary(token_id=token_id, id_token=id_token)
     except ValidationError as e:
         raise SystemExit(f"error: bad structure in {path}: {e}")
 

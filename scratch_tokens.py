@@ -12,6 +12,58 @@ from llm_sdk import Small_LLM_Model
 
 MAX_TOKENS = 30
 
+def bytes_to_unicode() -> dict[str, int]:
+    """GPT-2 / Qwen byte-level BPE table, reversed: costume-char -> raw byte.
+
+    Training never stores raw bytes 0-255 directly (some are control chars /
+    spaces that break text files). Each byte is dressed in a printable 'costume'
+    char -- that's what you see inside vocab.json (the Ġ etc.). To recover the
+    real bytes a token stands for, undo this mapping.
+    """
+    bs = (
+        list(range(ord("!"), ord("~") + 1))
+        + list(range(ord("¡"), ord("¬") + 1))
+        + list(range(ord("®"), ord("ÿ") + 1))
+    )
+    cs = bs[:]
+    n = 0
+    for b in range(256):
+        if b not in bs:          # byte with no printable glyph -> give it a costume
+            bs.append(b)
+            cs.append(256 + n)
+            n += 1
+    return {chr(c): b for b, c in zip(bs, cs)}   # costume char -> byte
+
+
+def demo_multibyte(model) -> None:
+    """Show one character split across several token ids (the multi-byte trap)."""
+    char2byte = bytes_to_unicode()
+
+    with open(model.get_path_to_vocab_file()) as f:
+        vocab = json.load(f)                       # token_string -> id
+    inv_vocab = {i: t for t, i in vocab.items()}   # id -> token_string (costume)
+
+    text = "café 😀 日本"      # accent (2B), emoji (4B), CJK (3B each)
+    ids = model.encode(text)[0].tolist()
+    print("\n=== multi-byte demo ===")
+    print("text:", text, "\n")
+    print("ids :", ids, "\n")
+
+    run = bytearray()
+    for tid in ids:
+        costume = inv_vocab[tid]
+        print(costume)
+        raw = bytes(char2byte[ch] for ch in costume)   # costume -> real bytes
+        print(raw)
+        run += raw
+        print(run)
+        try:
+            solo = repr(raw.decode("utf-8"))           # decode THIS token alone
+        except UnicodeDecodeError:
+            solo = "<<partial char — invalid UTF-8 alone>>"
+        print(f"id {tid:<7} costume {costume!r:<8} bytes {list(raw)!s:<18} solo={solo}")
+
+    print("\njoined bytes decoded:", run.decode("utf-8"))
 
 def main() -> None:
     model = Small_LLM_Model()          # first run downloads Qwen3-0.6B (~1.2GB)
@@ -72,6 +124,9 @@ def main() -> None:
         vocab = json.load(f)
     print("vocab size:", len(vocab))
     print("first 5 tokens:", list(vocab.items())[:5])   # spot the Ġ costumes
+    print()
+
+    demo_multibyte(model)
 
 
 if __name__ == "__main__":
