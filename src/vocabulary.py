@@ -64,7 +64,6 @@ class Vocabulary(BaseModel):
     def token_bytes(self, id_num) -> bytes:
         """Turn one token id into its raw bytes (costume string -> bytes)."""
         token = self.id_token[id_num]
-        print(token)
         return bytes(_BYTE_TABLE[char] for char in token)
     
     def decode(self, ids: list[int]) -> str:
@@ -78,5 +77,6 @@ class Vocabulary(BaseModel):
 
         for id_num in ids:
             buffer += self.token_bytes(id_num)
+        print(buffer)
         return buffer.decode("utf-8")
 

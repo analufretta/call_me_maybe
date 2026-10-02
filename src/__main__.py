@@ -6,6 +6,7 @@ from pathlib import Path
 from llm_sdk import Small_LLM_Model
 
 from src.load import load_functions, load_prompts, load_vocab
+from src.generate import pick_function, generate_call, write_output
 
 
 def parse() -> Namespace:
@@ -16,11 +17,15 @@ def parse() -> Namespace:
                         default=Path("data/input/functions_definition.json"))
     parser.add_argument("-i", "--input", type=Path,
                         default=Path("data/input/function_calling_tests.json"))
+    parser.add_argument("-o", "--output", type=Path,
+                        default=Path("data/output/function_calling_results.json"))
     return (parser.parse_args())
 
 
 def main() -> None:
     """Parse CLI arguments and run the function-calling pipeline."""
+    results = []
+    
     args = parse()
     functions = load_functions(args.functions_definition)
     prompts = load_prompts(args.input)
@@ -28,24 +33,11 @@ def main() -> None:
     model = Small_LLM_Model()
     vocab = load_vocab(Path(model.get_path_to_vocab_file()))
 
-    # sanity: our byte decoder must match the SDK's decode on a known text
-    ids = model.encode("café 😀 add(2, 3)")[0].tolist()
-    print("ours: ", vocab.decode(ids))
-    print("sdk : ", model.decode(ids))
-
-    # print(args)
-    # print(args.functions_definition)
-    # for f in functions:
-    #     print(f)
-    #     print()
-
-    # for p in prompts:
-    #     print(p)
-    #     print()
-
-    # TODO: for each prompt pick a funcion + extract params
-    # TODO: results = results = run_pipeline(functions, prompts)
-    # TODO: write_output(args.output, results)
+    for prompt in prompts:
+        function = pick_function(prompt, functions, model, vocab)  # TODO
+        obj = generate_call(prompt, function, model, vocab)
+        results.append(obj)
+    write_output(args.output, results)  # TODO
 
 
 if __name__ == "__main__":
