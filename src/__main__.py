@@ -34,10 +34,11 @@ def main() -> None:
     vocab = load_vocab(Path(model.get_path_to_vocab_file()))
 
     for prompt in prompts:
-        function = pick_function(prompt, functions, model, vocab)  # TODO
-        obj = generate_call(prompt, function, model, vocab)
-        results.append(obj)
-    write_output(args.output, results)  # TODO
+        function = pick_function(prompt, functions, model, vocab)
+        print(function)
+    #     obj = generate_call(prompt, function, model, vocab)  # TODO
+    #     results.append(obj)
+    # write_output(args.output, results)  # TODO
 
 
 if __name__ == "__main__":

@@ -9,16 +9,43 @@ from src.models import FunctionDef, TestPrompt
 from src.vocabulary import Vocabulary
 
 
+def build_prompt(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
+    """Build the minimal model input for choosing a function.
+
+    For now just the user request plus the opening JSON scaffold, so the
+    model's next tokens are the function name. Prompt wording and accuracy
+    tuning (chat format, instructions, function catalogue) are a later phase.
+    """
+    return f'{prompt.prompt}\n{{"name": "'
+
+
 def pick_function(
     prompt: TestPrompt, functions: list[FunctionDef], model: Small_LLM_Model, vocab: Vocabulary
 ) -> FunctionDef:
     """Choose which function the prompt is asking for.
 
-    Runs the LLM constrained to the valid function names only, so the model
-    can pick *which* function but never invent a name that is not in
-    ``functions``.
+    Scores each candidate name by summing the model's logits along its tokens
+    and returns the highest. Because only real names are ever scored, the
+    result is always a valid function (never an invented name).
     """
-    pass
+    base = build_prompt(prompt, functions)
+    base_ids = model.encode(base)[0].tolist()
+
+    best_function: FunctionDef | None = None
+    best_score = float("-inf")
+    for f in functions:
+        fn_tokens = model.encode(f.name)[0].tolist()
+        ids = base_ids[:]
+        score = 0.0
+        for fn_token in fn_tokens:
+            logits = model.get_logits_from_input_ids(ids)
+            score += logits[fn_token]
+            ids.append(fn_token)
+        if score > best_score:
+            best_function, best_score = f, score
+
+    assert best_function is not None  # functions is never empty
+    return best_function
 
 
 def generate_call(
