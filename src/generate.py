@@ -16,7 +16,12 @@ def build_prompt(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
     model's next tokens are the function name. Prompt wording and accuracy
     tuning (chat format, instructions, function catalogue) are a later phase.
     """
-    return f'{prompt.prompt}\n{{"name": "'
+    names = ", ".join(f.name for f in functions)
+    return (
+        f"Available functions: {names}\n"
+        f"User request: {prompt}\n"
+        f"what is the most probable available function to return the right result?"
+    )
 
 
 def pick_function(

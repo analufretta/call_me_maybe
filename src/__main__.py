@@ -35,7 +35,7 @@ def main() -> None:
 
     for prompt in prompts:
         function = pick_function(prompt, functions, model, vocab)
-        print(function)
+        print(f"\n{prompt}: {function.name}\n")
     #     obj = generate_call(prompt, function, model, vocab)  # TODO
     #     results.append(obj)
     # write_output(args.output, results)  # TODO

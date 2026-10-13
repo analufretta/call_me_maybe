@@ -4,29 +4,29 @@
 from pydantic import BaseModel
 
 
-# def _build_byte_table() -> dict[str, int]:
-#     """GPT-2 / Qwen byte-level BPE table, reversed: costume char -> raw byte.
+def _build_byte_table() -> dict[str, int]:
+    """GPT-2 / Qwen byte-level BPE table, reversed: costume char -> raw byte.
 
-#     Each of the 256 byte values appears in vocab.json as a printable
-#     "costume" character (space -> 'Ġ', newline -> 'Ċ', etc.). Reverse that
-#     map so a token's costume string can become real bytes again.
-#     """
-#     bs = (
-#         list(range(ord("!"), ord("~") + 1))
-#         + list(range(ord("¡"), ord("¬") + 1))
-#         + list(range(ord("®"), ord("ÿ") + 1))
-#     )
-#     cs = bs[:]
-#     n = 0
-#     for b in range(256):
-#         if b not in bs:
-#             bs.append(b)
-#             cs.append(256 + n)
-#             n += 1
-#     return {chr(c): b for b, c in zip(bs, cs)}
+    Each of the 256 byte values appears in vocab.json as a printable
+    "costume" character (space -> 'Ġ', newline -> 'Ċ', etc.). Reverse that
+    map so a token's costume string can become real bytes again.
+    """
+    bs = (
+        list(range(ord("!"), ord("~") + 1))
+        + list(range(ord("¡"), ord("¬") + 1))
+        + list(range(ord("®"), ord("ÿ") + 1))
+    )
+    cs = bs[:]
+    n = 0
+    for b in range(256):
+        if b not in bs:
+            bs.append(b)
+            cs.append(256 + n)
+            n += 1
+    return {chr(c): b for b, c in zip(bs, cs)}
 
 
-# _BYTE_TABLE = _build_byte_table()
+_BYTE_TABLE = _build_byte_table()
 
 
 class Vocabulary(BaseModel):
@@ -54,14 +54,6 @@ class Vocabulary(BaseModel):
         """Number of tokens in the vocabulary."""
         return len(self.token_id)
 
-        """Token ids that are a fragment of 'true' or 'false'."""
-        result: set[int] = set()
-        for i in self.id_token:
-            b = self.token_bytes(i)
-            if b and (b in b"true" or b in b"false"):
-                result.add(i)
-        return result
-
     def id_to_token(self, id_num: int) -> str | None:
         """Find string by giving the id"""
         return self.id_token.get(id_num)
@@ -75,15 +67,15 @@ class Vocabulary(BaseModel):
         token = self.id_token[id_num]
         return bytes(_BYTE_TABLE[char] for char in token)
     
-    # def decode(self, ids: list[int]) -> str:
-    #     """Turn a list of token ids into real text.
+    def decode(self, ids: list[int]) -> str:
+        """Turn a list of token ids into real text.
 
-    #     Collects every token's raw bytes FIRST, then decodes the whole run as
-    #     UTF-8 once -- so a token holding only part of a multi-byte character
-    #     never crashes on its own.
-    #     """
-    #     buffer = bytearray()
+        Collects every token's raw bytes FIRST, then decodes the whole run as
+        UTF-8 once -- so a token holding only part of a multi-byte character
+        never crashes on its own.
+        """
+        buffer = bytearray()
 
-    #     for id_num in ids:
-    #         buffer += self.token_bytes(id_num)
-    #     return buffer.decode("utf-8")
+        for id_num in ids:
+            buffer += self.token_bytes(id_num)
+        return buffer.decode("utf-8")
