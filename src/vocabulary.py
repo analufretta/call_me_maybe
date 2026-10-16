@@ -1,4 +1,5 @@
-"""Vocabulary: token<->id lookups and byte-level decoding for the model vocab."""
+"""Vocabulary: token<->id lookups and
+byte-level decoding for the model vocab."""
 
 
 from pydantic import BaseModel
@@ -66,7 +67,7 @@ class Vocabulary(BaseModel):
         """Turn one token id into its raw bytes (costume string -> bytes)."""
         token = self.id_token[id_num]
         return bytes(_BYTE_TABLE[char] for char in token)
-    
+
     def decode(self, ids: list[int]) -> str:
         """Turn a list of token ids into real text.
 
