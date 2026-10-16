@@ -9,6 +9,40 @@ from src.models import FunctionDef, TestPrompt
 from src.vocabulary import Vocabulary
 
 
+def constrained_max(
+    ids: list[int], allowed: set[int], model: Small_LLM_Model
+) -> int:
+    """Pick the max-logit token within ``allowed`` for context ``ids``.
+
+    The one masked-argmax primitive every value fill builds on: score the
+    next token with the model, then take the highest-scoring token that the
+    mask permits. ``allowed`` must be non-empty.
+    """
+    logits = model.get_logits_from_input_ids(ids)
+    return max(allowed, key=lambda t: logits[t])
+
+
+def build_prompt(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
+    """Build the model input for choosing a function."""
+    names = ", ".join(f.name for f in functions)
+    return (
+        f"Available functions: {names}\n"
+        f"User request: {prompt.prompt}\n"
+        f'{{"name": "'
+    )
+
+
+def allowed_tokens(
+    functions: list[FunctionDef], model: Small_LLM_Model
+) -> dict[str, list[int]]:
+    legal_paths: dict[str, list[int]] | None = {}
+    for f in functions:
+        encoded = model.encode(f.name)[0].tolist()
+        legal_paths[f.name] = encoded
+    assert legal_paths is not None
+    return legal_paths
+
+
 def pick_function(
     prompt: TestPrompt, functions: list[FunctionDef],
     model: Small_LLM_Model, vocab: Vocabulary
@@ -35,34 +69,12 @@ def pick_function(
         allowed = {toks[depth] for toks in matches if len(toks) > depth}
         if not allowed:
             break
-        logits = model.get_logits_from_input_ids(base_ids + choosen)
-        choosen.append(max(allowed, key=lambda t: logits[t]))
+        choosen.append(constrained_max(base_ids + choosen, allowed, model))
 
     for f, toks in legal_paths.items():
         if toks == choosen:
             return f
     raise AssertionError("constrained walk ended off every valid name")
-
-
-def build_prompt(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
-    """Build the model input for choosing a function."""
-    names = ", ".join(f.name for f in functions)
-    return (
-        f"Available functions: {names}\n"
-        f"User request: {prompt.prompt}\n"
-        f'{{"name": "'
-    )
-
-
-def allowed_tokens(
-    functions: list[FunctionDef], model: Small_LLM_Model
-) -> dict[str, list[int]]:
-    legal_paths: dict[str, list[int]] | None = {}
-    for f in functions:
-        encoded = model.encode(f.name)[0].tolist()
-        legal_paths[f.name] = encoded
-    assert legal_paths is not None
-    return legal_paths
 
 
 def generate_call(
