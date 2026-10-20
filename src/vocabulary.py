@@ -2,6 +2,8 @@
 byte-level decoding for the model vocab."""
 
 
+from functools import cached_property
+
 from pydantic import BaseModel
 
 
@@ -80,3 +82,68 @@ class Vocabulary(BaseModel):
         for id_num in ids:
             buffer += self.token_bytes(id_num)
         return buffer.decode("utf-8")
+
+
+# TODO: ANALYSE THESE HELPERS
+    @cached_property
+    def number_pieces(self) -> set[int]:
+        """Token ids whose text is only digits, '.', or '-'.
+
+        The mask for ``fill_number``: a token passes only if every one of its
+        characters is a legal number character, so the model can never emit a
+        letter or space inside a number. Computed once over the vocab.
+        """
+        legal = set("0123456789.-")
+        out: set[int] = set()
+        for id_num in self.id_token:
+            text = self.token_bytes(id_num).decode("utf-8", "ignore")
+            if text and all(char in legal for char in text):
+                out.add(id_num)
+        return out
+
+    @cached_property
+    def string_pieces(self) -> set[int]:
+        """Token ids safe inside a JSON string: no '"', no control chars.
+
+        The mask for ``fill_string``. A partial multi-byte piece (half of
+        ``é`` or ``😀``) can never hold a '"' (0x22 is ASCII, never a UTF-8
+        continuation byte), so it is allowed. The standalone '"' token is
+        excluded on purpose -- it is how the string closes.
+        """
+        out: set[int] = set()
+        for id_num in self.id_token:
+            try:
+                text = self.token_bytes(id_num).decode("utf-8")
+            except UnicodeDecodeError:
+                out.add(id_num)
+                continue
+            if '"' not in text and not any(ord(c) < 0x20 for c in text):
+                out.add(id_num)
+        return out
+
+    @cached_property
+    def string_stops(self) -> set[int]:
+        """Token ids that close a JSON string: any token starting with '"'.
+
+        A string's stop is the closing quote. The model's trained ender is
+        usually a MERGED token (`",`  `":`  `","`), all excluded from
+        string_pieces -- so without this set the model can never pick its
+        natural close and rambles to the cap. Content tokens never contain a
+        quote, so every quote-first token here is a legit terminator.
+        """
+        out: set[int] = set()
+        for id_num in self.id_token:
+            text = self.token_bytes(id_num).decode("utf-8", "ignore")
+            if text.startswith('"'):
+                out.add(id_num)
+        return out
+
+    @cached_property
+    def value_stops(self) -> set[int]:
+        """Token ids that legally end a number: ',' and '}'.
+
+        ``fill_number`` loops over ``number_pieces | value_stops``; when the
+        model reaches for one of these it means the number is done.
+        """
+        stops = {self.token_to_id(c) for c in (",", "}")}
+        return {tid for tid in stops if tid is not None}

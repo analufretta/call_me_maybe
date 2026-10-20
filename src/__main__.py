@@ -6,7 +6,7 @@ from pathlib import Path
 from llm_sdk import Small_LLM_Model
 
 from src.load import load_functions, load_prompts, load_vocab
-from src.generate import pick_function, generate_call, write_output
+from src.generate import pick_function, generate_output, write_output
 
 
 def parse() -> Namespace:
@@ -24,8 +24,9 @@ def parse() -> Namespace:
 
 def main() -> None:
     """Parse CLI arguments and run the function-calling pipeline."""
-    results = []
-    
+    results: list[dict] = []
+
+
     args = parse()
     functions = load_functions(args.functions_definition)
     prompts = load_prompts(args.input)
@@ -34,11 +35,14 @@ def main() -> None:
     vocab = load_vocab(Path(model.get_path_to_vocab_file()))
 
     for prompt in prompts:
-        function = pick_function(prompt, functions, model, vocab)
-        print(f"\n{prompt.prompt}: {function}\n")
-    #     obj = generate_call(prompt, function, model, vocab)  # TODO
-    #     results.append(obj)
-    # write_output(args.output, results)  # TODO
+        try:
+            function = pick_function(prompt, functions, model, vocab)
+            obj = generate_output(prompt, function, model, vocab)
+            results.append(obj)
+            print(f"\n{obj}\n")
+        except Exception as e:
+            print(f"skip {prompt.prompt!r}: {e}")
+    write_output(args.output, results)
 
 
 if __name__ == "__main__":

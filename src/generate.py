@@ -22,13 +22,26 @@ def constrained_max(
     return max(allowed, key=lambda t: logits[t])
 
 
-def build_prompt(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
+def prompt_funtion(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
     """Build the model input for choosing a function."""
     names = ", ".join(f.name for f in functions)
     return (
         f"Available functions: {names}\n"
         f"User request: {prompt.prompt}\n"
         f'{{"name": "'
+    )
+
+
+def prompt_output(function: FunctionDef, prompt: TestPrompt) -> str:
+    param_list = ", ".join(
+        f"{param} ({spec.type})" for param, spec in function.parameters.items()
+    )
+    return (
+        f"Function: {function.name}\n"
+        f"Description: {function.description}\n"
+        f"Parameters: {param_list}\n"
+        f"User request: {prompt.prompt}\n"
+        f'{{"name": "{function.name}", "parameters": {{'
     )
 
 
@@ -46,7 +59,7 @@ def allowed_tokens(
 def pick_function(
     prompt: TestPrompt, functions: list[FunctionDef],
     model: Small_LLM_Model, vocab: Vocabulary
-) -> str:
+) -> FunctionDef:
     """Choose the function by constrained greedy decoding over the names.
 
     Builds one valid token path per function name and walks it token by
@@ -55,7 +68,7 @@ def pick_function(
     chosen tokens equal a complete name, so the result is always a real
     function -- the model only steers *between* valid names, never off them.
     """
-    base_call = build_prompt(prompt, functions)
+    base_call = prompt_funtion(prompt, functions)
     legal_paths = allowed_tokens(functions, model)
     base_ids = model.encode(base_call)[0].tolist()
     choosen: list[int] = []
@@ -70,14 +83,14 @@ def pick_function(
         if not allowed:
             break
         choosen.append(constrained_max(base_ids + choosen, allowed, model))
-
-    for f, toks in legal_paths.items():
+    by_name = {fn.name: fn for fn in functions}
+    for name, toks in legal_paths.items():
         if toks == choosen:
-            return f
+            return by_name[name]
     raise AssertionError("constrained walk ended off every valid name")
 
 
-def generate_call(
+def generate_output(
     prompt: TestPrompt, function: FunctionDef,
     model: Small_LLM_Model, vocab: Vocabulary
 ) -> dict:
@@ -87,7 +100,24 @@ def generate_call(
     interleaved with constrained model steps for each parameter value.
     Returns the object ``{"prompt", "name", "parameters"}`` (V.4.1).
     """
-    pass
+    from src.format import force, fill_boolean, fill_number, fill_string
+
+    fill_by_type = {
+        "number": fill_number, "string": fill_string, "boolean": fill_boolean,
+    }
+
+    ids = model.encode(prompt_output(function, prompt))[0].tolist()
+    params: dict[str, object] = {}
+    for i, (param, ptype) in enumerate(function.parameters.items()):
+        if i:
+            force(ids, ", ", model)
+        opener = '"' if ptype.type == "string" else ""
+        force(ids, f'"{param}": {opener}', model)
+        fill = fill_by_type.get(ptype.type, fill_string)
+        params[param] = fill(ids, model, vocab)
+    force(ids, "}}", model)
+
+    return {"prompt": prompt.prompt, "name": function.name, "parameters": params}
 
 
 def write_output(path: Path, results: list[dict]) -> None:
