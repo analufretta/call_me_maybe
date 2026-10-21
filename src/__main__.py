@@ -17,15 +17,15 @@ def parse() -> Namespace:
                         default=Path("data/input/functions_definition.json"))
     parser.add_argument("-i", "--input", type=Path,
                         default=Path("data/input/function_calling_tests.json"))
-    parser.add_argument("-o", "--output", type=Path,
-                        default=Path("data/output/function_calling_results.json"))
+    parser.add_argument(
+        "-o", "--output", type=Path,
+        default=Path("data/output/function_calling_results.json"))
     return (parser.parse_args())
 
 
 def main() -> None:
     """Parse CLI arguments and run the function-calling pipeline."""
     results: list[dict] = []
-
 
     args = parse()
     functions = load_functions(args.functions_definition)
@@ -36,7 +36,7 @@ def main() -> None:
 
     for prompt in prompts:
         try:
-            function = pick_function(prompt, functions, model, vocab)
+            function = pick_function(prompt, functions, model)
             obj = generate_output(prompt, function, model, vocab)
             results.append(obj)
             print(f"\n{obj}\n")

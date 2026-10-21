@@ -5,24 +5,14 @@ from pathlib import Path
 
 from llm_sdk import Small_LLM_Model
 
+from src.format import (
+    constrained_max, force, fill_boolean, fill_number, fill_string,
+)
 from src.models import FunctionDef, TestPrompt
 from src.vocabulary import Vocabulary
 
 
-def constrained_max(
-    ids: list[int], allowed: set[int], model: Small_LLM_Model
-) -> int:
-    """Pick the max-logit token within ``allowed`` for context ``ids``.
-
-    The one masked-argmax primitive every value fill builds on: score the
-    next token with the model, then take the highest-scoring token that the
-    mask permits. ``allowed`` must be non-empty.
-    """
-    logits = model.get_logits_from_input_ids(ids)
-    return max(allowed, key=lambda t: logits[t])
-
-
-def prompt_funtion(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
+def prompt_function(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
     """Build the model input for choosing a function."""
     names = ", ".join(f.name for f in functions)
     return (
@@ -48,17 +38,12 @@ def prompt_output(function: FunctionDef, prompt: TestPrompt) -> str:
 def allowed_tokens(
     functions: list[FunctionDef], model: Small_LLM_Model
 ) -> dict[str, list[int]]:
-    legal_paths: dict[str, list[int]] | None = {}
-    for f in functions:
-        encoded = model.encode(f.name)[0].tolist()
-        legal_paths[f.name] = encoded
-    assert legal_paths is not None
-    return legal_paths
+    """Map each function name to its token path."""
+    return {f.name: model.encode(f.name)[0].tolist() for f in functions}
 
 
 def pick_function(
-    prompt: TestPrompt, functions: list[FunctionDef],
-    model: Small_LLM_Model, vocab: Vocabulary
+    prompt: TestPrompt, functions: list[FunctionDef], model: Small_LLM_Model
 ) -> FunctionDef:
     """Choose the function by constrained greedy decoding over the names.
 
@@ -68,24 +53,24 @@ def pick_function(
     chosen tokens equal a complete name, so the result is always a real
     function -- the model only steers *between* valid names, never off them.
     """
-    base_call = prompt_funtion(prompt, functions)
+    base_call = prompt_function(prompt, functions)
     legal_paths = allowed_tokens(functions, model)
     base_ids = model.encode(base_call)[0].tolist()
-    choosen: list[int] = []
+    chosen: list[int] = []
 
     while True:
-        depth = len(choosen)
+        depth = len(chosen)
         matches: list[list[int]] = [
             fn_tokens for fn_tokens in legal_paths.values()
-            if fn_tokens[:depth] == choosen
+            if fn_tokens[:depth] == chosen
             ]
         allowed = {toks[depth] for toks in matches if len(toks) > depth}
         if not allowed:
             break
-        choosen.append(constrained_max(base_ids + choosen, allowed, model))
+        chosen.append(constrained_max(base_ids + chosen, allowed, model))
     by_name = {fn.name: fn for fn in functions}
     for name, toks in legal_paths.items():
-        if toks == choosen:
+        if toks == chosen:
             return by_name[name]
     raise AssertionError("constrained walk ended off every valid name")
 
@@ -100,8 +85,6 @@ def generate_output(
     interleaved with constrained model steps for each parameter value.
     Returns the object ``{"prompt", "name", "parameters"}`` (V.4.1).
     """
-    from src.format import force, fill_boolean, fill_number, fill_string
-
     fill_by_type = {
         "number": fill_number, "string": fill_string, "boolean": fill_boolean,
     }
@@ -117,7 +100,9 @@ def generate_output(
         params[param] = fill(ids, model, vocab)
     force(ids, "}}", model)
 
-    return {"prompt": prompt.prompt, "name": function.name, "parameters": params}
+    return {
+        "prompt": prompt.prompt, "name": function.name, "parameters": params
+    }
 
 
 def write_output(path: Path, results: list[dict]) -> None:

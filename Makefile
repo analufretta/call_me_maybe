@@ -1,7 +1,7 @@
 .PHONY: install run debug clean fclean re lint lint-strict
 
-# Default input/output paths (overridable on the command line)
-# Question: how can I override this in the command line?
+# Default input/output paths, overridable on the command line:
+#   make run INPUT=other.json OUTPUT=out.json
 FUNCTIONS ?= data/input/functions_definition.json
 INPUT     ?= data/input/function_calling_tests.json
 OUTPUT    ?= data/output/function_calling_results.json
@@ -18,7 +18,7 @@ run:
 	uv run python -m src \
 		--functions_definition $(FUNCTIONS) \
 		--input $(INPUT) \
-#  		--output $(OUTPUT)
+		--output $(OUTPUT)
 
 debug:
 	uv run python -m pdb -m src \

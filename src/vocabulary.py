@@ -65,7 +65,7 @@ class Vocabulary(BaseModel):
         """Find the id by giving the string"""
         return self.token_id.get(token)
 
-    def token_bytes(self, id_num) -> bytes:
+    def token_bytes(self, id_num: int) -> bytes:
         """Turn one token id into its raw bytes (costume string -> bytes)."""
         token = self.id_token[id_num]
         return bytes(_BYTE_TABLE[char] for char in token)
@@ -83,8 +83,6 @@ class Vocabulary(BaseModel):
             buffer += self.token_bytes(id_num)
         return buffer.decode("utf-8")
 
-
-# TODO: ANALYSE THESE HELPERS
     @cached_property
     def number_pieces(self) -> set[int]:
         """Token ids whose text is only digits, '.', or '-'.
@@ -140,10 +138,15 @@ class Vocabulary(BaseModel):
 
     @cached_property
     def value_stops(self) -> set[int]:
-        """Token ids that legally end a number: ',' and '}'.
+        """Token ids that end a number: any token starting with ',' or '}'.
 
-        ``fill_number`` loops over ``number_pieces | value_stops``; when the
-        model reaches for one of these it means the number is done.
+        Like ``string_stops``: the model's natural ender is often a MERGED
+        token (``,"``  ``}}``  ``},``), so every comma- or brace-first token
+        counts. When ``fill_number`` picks one, the number is done.
         """
-        stops = {self.token_to_id(c) for c in (",", "}")}
-        return {tid for tid in stops if tid is not None}
+        out: set[int] = set()
+        for id_num in self.id_token:
+            text = self.token_bytes(id_num).decode("utf-8", "ignore")
+            if text.startswith((",", "}")):
+                out.add(id_num)
+        return out

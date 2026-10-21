@@ -53,12 +53,10 @@ def load_vocab(path: Path) -> Vocabulary:
         raise SystemExit(f"error: file not found: {path}")
     try:
         token_id = json.loads(raw)
-        # print("token to id (first 5):", dict(list(token_id.items())[:5]))
     except json.JSONDecodeError as e:
         raise SystemExit(f"error: invalid JSON in {path}: {e}")
     try:
         id_token = {i: tok for tok, i in token_id.items()}
-        # print("id to token (first 5):", dict(list(id_token.items())[:5]))
         return Vocabulary(token_id=token_id, id_token=id_token)
     except ValidationError as e:
         raise SystemExit(f"error: bad structure in {path}: {e}")

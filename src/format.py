@@ -3,14 +3,16 @@
 FORCE emits structure we already know (keys, braces, quotes, commas) with no
 model call and no choice. FILL asks the model for a value but masks its
 choices to the tokens legal for the target type, so the emitted JSON is valid
-by construction. The fills mask with ``constrained_max`` from ``generate``.
+by construction. Every model step goes through ``constrained_max``.
 """
 
 import json
+import re
+from typing import Callable
 
+import numpy as np
 from llm_sdk import Small_LLM_Model
 
-from src.generate import constrained_max
 from src.vocabulary import Vocabulary
 
 # Safety cap: a weak model may never emit a value's stop token (e.g. a regex
@@ -23,6 +25,12 @@ MAX_VALUE_TOKENS = 64
 # the value is looping -- keep one copy and close. 2, not 1, so a legit
 # doubled token (`**`) is not mistaken for a loop.
 MIN_REPEAT_TOKENS = 2
+
+# JSON number grammar. PREFIX: text that can still grow into a number
+# ("", "-", "12", "12."); no leading zeros, no bare ".5". COMPLETE: text
+# that may end here ("12", "-0.5"); "12." and "-" may not.
+NUMBER_PREFIX = re.compile(r"-?((0|[1-9]\d*)(\.\d*)?)?")
+NUMBER_COMPLETE = re.compile(r"-?(0|[1-9]\d*)(\.\d+)?")
 
 
 def _repeat_len(emitted: list[int]) -> int:
@@ -37,6 +45,42 @@ def _repeat_len(emitted: list[int]) -> int:
     return 0
 
 
+def constrained_max(
+    ids: list[int], allowed: set[int], model: Small_LLM_Model
+) -> int:
+    """Pick the max-logit token within ``allowed`` for context ``ids``.
+
+    The one masked-argmax primitive every model step builds on: score the
+    next token with the model, then take the highest-scoring token that the
+    mask permits. ``allowed`` must be non-empty.
+
+    When the mask leaves a single token there is no choice to make, so it is
+    returned without a model call -- e.g. the tail of a function name once
+    its prefix is unique.
+    """
+    if len(allowed) == 1:
+        return next(iter(allowed))
+    logits = model.get_logits_from_input_ids(ids)
+    return max(allowed, key=lambda t: logits[t])
+
+
+def ranked_pick(
+    ids: list[int], model: Small_LLM_Model, accept: Callable[[int], bool]
+) -> int:
+    """Pick the highest-logit token that ``accept`` approves.
+
+    For constraints that depend on what was already emitted (a number may
+    not take a second '.'), a full mask would test every vocab token each
+    step. Instead walk tokens best-first and stop at the first accepted
+    one -- usually within the top few, so only a handful get checked.
+    """
+    logits = np.asarray(model.get_logits_from_input_ids(ids))
+    for tok in np.argsort(-logits):
+        if accept(int(tok)):
+            return int(tok)
+    raise AssertionError("no token satisfies the constraint")
+
+
 def force(ids: list[int], text: str, model: Small_LLM_Model) -> None:
     """Append the tokens of a known scaffold string to ``ids`` in place.
 
@@ -46,7 +90,6 @@ def force(ids: list[int], text: str, model: Small_LLM_Model) -> None:
     """
     ids.extend(model.encode(text)[0].tolist())
 
-# TODO: ANALYZES THESE FUNCTIONS
 
 def fill_boolean(
     ids: list[int], model: Small_LLM_Model, vocab: Vocabulary
@@ -79,19 +122,34 @@ def fill_number(
 ) -> float:
     """Fill a JSON number: emit digit/'.'/'-' tokens until a ',' or '}'.
 
-    The mask is ``number_pieces | value_stops``. When the model reaches for a
-    stop token the number is done; it is NOT appended (the orchestrator forces
-    the real separator next). Returns the decoded tokens as ``float``.
+    Each step takes the best token that keeps the text on the JSON number
+    grammar: a piece only if the result is still a ``NUMBER_PREFIX``, a stop
+    only once the text is a ``NUMBER_COMPLETE`` number. So ``--``, ``1.2.3``
+    and an empty value can never come out. The stop is NOT appended (the
+    orchestrator forces the real separator next). Returns a ``float``.
     """
-    allowed = vocab.number_pieces | vocab.value_stops
+    text = ""
     emitted: list[int] = []
+
+    def accept(tok: int) -> bool:
+        if tok in vocab.value_stops:
+            return NUMBER_COMPLETE.fullmatch(text) is not None
+        if tok in vocab.number_pieces:
+            piece = vocab.decode([tok])
+            return NUMBER_PREFIX.fullmatch(text + piece) is not None
+        return False
+
     while len(emitted) < MAX_VALUE_TOKENS:
-        tok = constrained_max(ids, allowed, model)
+        tok = ranked_pick(ids, model, accept)
         if tok in vocab.value_stops:
             break
         ids.append(tok)
         emitted.append(tok)
-    return float(vocab.decode(emitted))
+        text += vocab.decode([tok])
+    # Cap hit mid-number ("12.", "-"): drop the dangling part.
+    if not NUMBER_COMPLETE.fullmatch(text):
+        text = text.rstrip(".-") or "0"
+    return float(text)
 
 
 def fill_string(
@@ -125,6 +183,7 @@ def fill_string(
     # value is the real string. A cap-truncated value can end mid-escape
     # (lone `\`), which json rejects -- keep the raw text then.
     try:
-        return json.loads(f'"{text}"')
+        unescaped: str = json.loads(f'"{text}"')
+        return unescaped
     except json.JSONDecodeError:
         return text
