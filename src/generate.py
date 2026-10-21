@@ -60,6 +60,7 @@ def generate_output(
     interleaved with constrained model steps for each parameter value.
     Returns the object ``{"prompt", "name", "parameters"}`` (V.4.1).
     """
+    # TODO: COMPLEMENT WITH OTHER TYPES
     fill_by_type = {
         "number": fill_number, "string": fill_string, "boolean": fill_boolean,
     }

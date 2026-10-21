@@ -3,6 +3,7 @@
 from src.models import FunctionDef, TestPrompt
 
 
+# TODO: IMPROVE PROMPT?
 def prompt_function(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
     """Build the model input for choosing a function."""
     names = ", ".join(f.name for f in functions)
@@ -13,6 +14,7 @@ def prompt_function(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
     )
 
 
+# TODO: IMPROVE PROMPT?
 def prompt_output(function: FunctionDef, prompt: TestPrompt) -> str:
     """Build the model input for filling the chosen function's arguments."""
     param_list = ", ".join(
