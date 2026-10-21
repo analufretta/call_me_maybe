@@ -1,4 +1,4 @@
-"""Load and validate the JSON input files into typed pydantic objects."""
+"""File I/O: load and validate the JSON inputs, write the results file."""
 
 import json
 from pathlib import Path
@@ -87,3 +87,15 @@ def load_prompts(path: Path) -> list[TestPrompt]:
         return [TestPrompt(**p) for p in data]
     except ValidationError as e:
         raise SystemExit(f"error: bad structure in {path}: {e}")
+
+
+def write_output(path: Path, results: list[dict]) -> None:
+    """Write the result objects to ``path`` as a single JSON array.
+
+    Creates the parent directory if missing, then dumps the list with
+    indentation. Each object's numbers are already floats (V.4.1); this just
+    serialises what it is given.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(results, f, indent=2)

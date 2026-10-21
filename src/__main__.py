@@ -5,8 +5,8 @@ from pathlib import Path
 
 from llm_sdk import Small_LLM_Model
 
-from src.load import load_functions, load_prompts, load_vocab
-from src.generate import pick_function, generate_output, write_output
+from src.files import load_functions, load_prompts, load_vocab, write_output
+from src.generate import pick_function, generate_output
 
 
 def parse() -> Namespace:

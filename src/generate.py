@@ -1,38 +1,13 @@
 """Constrained generation: pick a function and build its call object."""
 
-import json
-from pathlib import Path
-
 from llm_sdk import Small_LLM_Model
 
-from src.format import (
+from src.decoding import (
     constrained_max, force, fill_boolean, fill_number, fill_string,
 )
 from src.models import FunctionDef, TestPrompt
+from src.prompts import prompt_function, prompt_output
 from src.vocabulary import Vocabulary
-
-
-def prompt_function(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
-    """Build the model input for choosing a function."""
-    names = ", ".join(f.name for f in functions)
-    return (
-        f"Available functions: {names}\n"
-        f"User request: {prompt.prompt}\n"
-        f'{{"name": "'
-    )
-
-
-def prompt_output(function: FunctionDef, prompt: TestPrompt) -> str:
-    param_list = ", ".join(
-        f"{param} ({spec.type})" for param, spec in function.parameters.items()
-    )
-    return (
-        f"Function: {function.name}\n"
-        f"Description: {function.description}\n"
-        f"Parameters: {param_list}\n"
-        f"User request: {prompt.prompt}\n"
-        f'{{"name": "{function.name}", "parameters": {{'
-    )
 
 
 def allowed_tokens(
@@ -103,15 +78,3 @@ def generate_output(
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params
     }
-
-
-def write_output(path: Path, results: list[dict]) -> None:
-    """Write the result objects to ``path`` as a single JSON array.
-
-    Creates the parent directory if missing, then dumps the list with
-    indentation. Each object's numbers are already floats (V.4.1); this just
-    serialises what it is given.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(results, f, indent=2)
