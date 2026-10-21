@@ -69,8 +69,7 @@ def generate_output(
     for i, (param, ptype) in enumerate(function.parameters.items()):
         if i:
             force(ids, ", ", model)
-        opener = '"' if ptype.type == "string" else ""
-        force(ids, f'"{param}": {opener}', model)
+        force(ids, f'"{param}": ', model)
         fill = fill_by_type.get(ptype.type, fill_string)
         params[param] = fill(ids, model, vocab)
     force(ids, "}}", model)
