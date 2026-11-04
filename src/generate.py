@@ -71,10 +71,11 @@ def generate_output(
         if i:
             force(ids, ", ", model)
         force(ids, f'"{param}": ', model)
-        fill = fill_by_type.get(ptype.type, fill_string)
+        fill = fill_by_type.get(ptype.type, fill_string) # TODO: DO I WANT DEFAULT STR?
         params[param] = fill(ids, model, vocab)
     force(ids, "}}", model)
-
+    # ADD LINE DECODING AND PRINTING TO SEE IF THIS IS ALREADY ACCORDING TO THE MODEL.
+    # I WONDER IF I AM NOT DOING TOO MUCH WORK HERE BY MAKING THE MODEL PRINT VALID JSON AND THEN ONLY TAKING THE PARAMETER TO WRITE THE OUTPUT VALID AGAIN
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params
     }

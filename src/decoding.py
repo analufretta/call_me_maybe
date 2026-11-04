@@ -29,8 +29,9 @@ MIN_REPEAT_TOKENS = 2
 # JSON number grammar. PREFIX: text that can still grow into a number
 # ("", "-", "12", "12."); no leading zeros, no bare ".5". COMPLETE: text
 # that may end here ("12", "-0.5"); "12." and "-" may not.
+# TODO: DIFF BTW NUMBER PREFIX AND NUMBER COMPLETE
 NUMBER_PREFIX = re.compile(r"-?((0|[1-9]\d*)(\.\d*)?)?")
-NUMBER_COMPLETE = re.compile(r"-?(0|[1-9]\d*)(\.\d+)?")
+NUMBER_COMPLETE = re.compile(r"-?(0|[1-9]\d*)(\.\d+)?") # TODO: WHY (0|[1-9]\d*) IS LIKE THIS
 
 
 def _repeat_len(emitted: list[int]) -> int:

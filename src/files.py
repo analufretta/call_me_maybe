@@ -98,4 +98,4 @@ def write_output(path: Path, results: list[dict]) -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(results, f, indent=2) # TODO: WHY IDENT=2?

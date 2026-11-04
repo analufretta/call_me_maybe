@@ -41,7 +41,7 @@ def main() -> None:
             results.append(obj)
             print(f"\n{obj}\n")
         except Exception as e:
-            print(f"skip {prompt.prompt!r}: {e}")
+            print(f"ERROR! skipes {prompt.prompt!r}: {e}")
     write_output(args.output, results)
 
 

@@ -6,7 +6,7 @@ from functools import cached_property
 
 from pydantic import BaseModel
 
-
+# TODO: UNDERSTAND IT BETTER
 def _build_byte_table() -> dict[str, int]:
     """GPT-2 / Qwen byte-level BPE table, reversed: costume char -> raw byte.
 
@@ -70,6 +70,7 @@ class Vocabulary(BaseModel):
         token = self.id_token[id_num]
         return bytes(_BYTE_TABLE[char] for char in token)
 
+    # TODO: WHY DO I HAVE MY OWN DECODE?
     def decode(self, ids: list[int]) -> str:
         """Turn a list of token ids into real text.
 
