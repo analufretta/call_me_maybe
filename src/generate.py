@@ -71,7 +71,7 @@ def generate_output(
         if i:
             force(ids, ", ", model)
         force(ids, f'"{param}": ', model)
-        fill = fill_by_type.get(ptype.type, fill_string) # TODO: DO I WANT DEFAULT STR?
+        fill = fill_by_type.get(ptype.type, fill_string) # TODO
         params[param] = fill(ids, model, vocab)
     force(ids, "}}", model)
     # ADD LINE DECODING AND PRINTING TO SEE IF THIS IS ALREADY ACCORDING TO THE MODEL.

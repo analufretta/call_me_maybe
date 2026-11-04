@@ -37,7 +37,7 @@ def main() -> None:
     for prompt in prompts:
         try:
             function = pick_function(prompt, functions, model)
-            obj = generate_output(prompt, function, model, vocab)
+            obj = generate_output(prompt, function, model, vocab) # TODO: finish up
             results.append(obj)
             print(f"\n{obj}\n")
         except Exception as e:
