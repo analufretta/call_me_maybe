@@ -1,24 +1,22 @@
 """Constrained generation: pick a function and build its call object."""
 
-from llm_sdk import Small_LLM_Model
+from llm_sdk import Small_LLM_Model as Model
 
-from src.decoding import (
-    constrained_max, force, fill_boolean, fill_number, fill_string,
-)
+from src.decoding import constrained_max, fill, force
 from src.models import FunctionDef, TestPrompt
 from src.prompts import prompt_function, prompt_output
 from src.vocabulary import Vocabulary
 
 
 def allowed_tokens(
-    functions: list[FunctionDef], model: Small_LLM_Model
+    functions: list[FunctionDef], model: Model
 ) -> dict[str, list[int]]:
     """Map each function name to its token path."""
     return {f.name: model.encode(f.name)[0].tolist() for f in functions}
 
 
 def pick_function(
-    prompt: TestPrompt, functions: list[FunctionDef], model: Small_LLM_Model
+    prompt: TestPrompt, functions: list[FunctionDef], model: Model
 ) -> FunctionDef:
     """Choose the function by constrained greedy decoding over the names.
 
@@ -52,7 +50,7 @@ def pick_function(
 
 def generate_output(
     prompt: TestPrompt, function: FunctionDef,
-    model: Small_LLM_Model, vocab: Vocabulary
+    model: Model, vocab: Vocabulary
 ) -> dict:
     """Build one output object for ``prompt`` calling ``function``.
 
@@ -60,10 +58,6 @@ def generate_output(
     interleaved with constrained model steps for each parameter value.
     Returns the object ``{"prompt", "name", "parameters"}`` (V.4.1).
     """
-    # TODO: COMPLEMENT WITH OTHER TYPES
-    fill_by_type = {
-        "number": fill_number, "string": fill_string, "boolean": fill_boolean,
-    }
 
     ids = model.encode(prompt_output(function, prompt))[0].tolist()
     params: dict[str, object] = {}
@@ -71,8 +65,7 @@ def generate_output(
         if i:
             force(ids, ", ", model)
         force(ids, f'"{param}": ', model)
-        fill = fill_by_type.get(ptype.type, fill_string) # TODO
-        params[param] = fill(ids, model, vocab)
+        params[param] = fill(ids, model, vocab, ptype.type)
     force(ids, "}}", model)
     # ADD LINE DECODING AND PRINTING TO SEE IF THIS IS ALREADY ACCORDING TO THE MODEL.
     # I WONDER IF I AM NOT DOING TOO MUCH WORK HERE BY MAKING THE MODEL PRINT VALID JSON AND THEN ONLY TAKING THE PARAMETER TO WRITE THE OUTPUT VALID AGAIN

@@ -28,6 +28,7 @@ def load_functions(path: Path) -> list[FunctionDef]:
         raise SystemExit(f"error: file not found: {path}")
     try:
         data = json.loads(raw)
+        print(data)
     except json.JSONDecodeError as e:
         raise SystemExit(f"error: invalid JSON in {path}: {e}")
     try:

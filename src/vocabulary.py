@@ -71,16 +71,16 @@ class Vocabulary(BaseModel):
         return bytes(_BYTE_TABLE[char] for char in token)
 
     # TODO: WHY DO I HAVE MY OWN DECODE?
-    def decode(self, ids: list[int]) -> str:
-        """Turn a list of token ids into real text.
+    # def decode(self, ids: list[int]) -> str:
+    #     """Turn a list of token ids into real text.
 
-        Collects every token's raw bytes FIRST, then decodes the whole run as
-        UTF-8 once -- so a token holding only part of a multi-byte character
-        never crashes on its own.
-        """
-        buffer = bytearray()
+    #     Collects every token's raw bytes FIRST, then decodes the whole run as
+    #     UTF-8 once -- so a token holding only part of a multi-byte character
+    #     never crashes on its own.
+    #     """
+    #     buffer = bytearray()
 
-        for id_num in ids:
-            buffer += self.token_bytes(id_num)
-        return buffer.decode("utf-8")
+    #     for id_num in ids:
+    #         buffer += self.token_bytes(id_num)
+    #     return buffer.decode("utf-8")
 
