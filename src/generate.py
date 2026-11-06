@@ -67,8 +67,6 @@ def generate_output(
         force(ids, f'"{param}": ', model)
         params[param] = fill(ids, model, vocab, ptype.type)
     force(ids, "}}", model)
-    # ADD LINE DECODING AND PRINTING TO SEE IF THIS IS ALREADY ACCORDING TO THE MODEL.
-    # I WONDER IF I AM NOT DOING TOO MUCH WORK HERE BY MAKING THE MODEL PRINT VALID JSON AND THEN ONLY TAKING THE PARAMETER TO WRITE THE OUTPUT VALID AGAIN
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params
     }

@@ -42,28 +42,40 @@ def force(ids: list[int], text: str, model: Model) -> None:
     """
     ids.extend(model.encode(text)[0].tolist())
 
-def find_bool(
+def fill_bool(
     ids: list[int], model: Model, vocab: Vocabulary
     ) -> bool:
-    pass
+    """Choose ``true`` or ``false`` and append its tokens to ``ids``.
 
-def find_num(
+    The two literals start with different tokens, so one masked model step
+    over those first tokens decides the value. The rest of the chosen
+    literal is forced. Returns the Python bool, not the text, so that
+    ``json.dump`` writes a real JSON boolean.
+    """
+    true_ids = model.encode("true")[0].tolist()
+    false_ids = model.encode("false")[0].tolist()
+    allowed = {true_ids[0], false_ids[0]}
+    first_tok = constrained_max(ids, allowed, model)
+    result = first_tok == true_ids[0]
+    ids.extend(true_ids if result else false_ids)
+    return result
+
+def fill_num(
     ids: list[int], model: Model, vocab: Vocabulary
     ) -> int | float:
     pass
 
-def find_str(
+def fill_str(
     ids: list[int], model: Model, vocab: Vocabulary
     ) -> str:
     pass
-
-FILL_BY_TYPE: dict[str, Callable[[list[int], Model, Vocabulary], object]] = {
-    "number": find_num, "integer": find_num,
-    "boolean": find_bool, "string": find_str,
-}
 
 def fill(
     ids: list[int], model: Model, vocab: Vocabulary, ptype: str
     ) -> object:
     """Fill one parameter value of schema type ``ptype``."""
-    return FILL_BY_TYPE[ptype](ids, model, vocab)
+    fill_type: dict[str, Callable[[list[int], Model, Vocabulary], object]] = {
+        "number": fill_num, "integer": fill_num,
+        "boolean": fill_bool, "string": fill_str,
+    }
+    return fill_type[ptype](ids, model, vocab)
