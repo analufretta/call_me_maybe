@@ -66,17 +66,19 @@ def fill_num(
     ptype: str
 ) -> int | float:
     allowed = vocab.num_tokens()
-    # round 1: only '-' anf '0-9' allowed
-    # round 2: if '-': only '0-9' allowed, else: only '.' | '0-9' allowed
-    # if next is digit: only '.' | '0-9' allowed
-    # if next is '.': only digit allowed
-    round = 0
     while True:
-        if round == 0
+        allowed = valid_next_number_tokens(text, ptype)
+
+        if is_complete_number(text, ptype):
+            allowed.add(stop_id)
+
         tok = constrained_max(ids, allowed, model)
-        if tok not in allowed:
+
+        if tok == stop_id:
             break
-        ids.extend(tok)
+
+        ids.append(tok)
+        text += char_for_id[tok]
     if ptype == "number":
         return float(result)
     else:
@@ -84,19 +86,7 @@ def fill_num(
 
     text = ""
 
-while True:
-    allowed = valid_next_number_tokens(text, ptype)
 
-    if is_complete_number(text, ptype):
-        allowed.add(stop_id)
-
-    tok = constrained_max(ids, allowed, model)
-
-    if tok == stop_id:
-        break
-
-    ids.append(tok)
-    text += char_for_id[tok]
 
 return int(text) if ptype == "integer" else float(text)
 
