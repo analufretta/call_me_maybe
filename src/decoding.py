@@ -6,14 +6,12 @@ choices to the tokens legal for the target type, so the emitted JSON is valid
 by construction. Every model step goes through ``constrained_max``.
 """
 
-import json
-import re
 from typing import Callable
 
-import numpy as np
 from llm_sdk import Small_LLM_Model as Model
 
 from src.vocabulary import Vocabulary
+
 
 def constrained_max(
     ids: list[int], allowed: set[int], model: Model
@@ -33,6 +31,7 @@ def constrained_max(
     logits = model.get_logits_from_input_ids(ids)
     return max(allowed, key=lambda t: logits[t])
 
+
 def force(ids: list[int], text: str, model: Model) -> None:
     """Append the tokens of a known scaffold string to ``ids`` in place.
 
@@ -42,9 +41,10 @@ def force(ids: list[int], text: str, model: Model) -> None:
     """
     ids.extend(model.encode(text)[0].tolist())
 
+
 def fill_bool(
     ids: list[int], model: Model, vocab: Vocabulary
-    ) -> bool:
+) -> bool:
     """Choose ``true`` or ``false`` and append its tokens to ``ids``.
 
     The two literals start with different tokens, so one masked model step
@@ -60,22 +60,62 @@ def fill_bool(
     ids.extend(true_ids if result else false_ids)
     return result
 
+
 def fill_num(
-    ids: list[int], model: Model, vocab: Vocabulary
-    ) -> int | float:
-    pass
+    ids: list[int], model: Model, vocab: Vocabulary,
+    ptype: str
+) -> int | float:
+    allowed = vocab.num_tokens()
+    # round 1: only '-' anf '0-9' allowed
+    # round 2: if '-': only '0-9' allowed, else: only '.' | '0-9' allowed
+    # if next is digit: only '.' | '0-9' allowed
+    # if next is '.': only digit allowed
+    round = 0
+    while True:
+        if round == 0
+        tok = constrained_max(ids, allowed, model)
+        if tok not in allowed:
+            break
+        ids.extend(tok)
+    if ptype == "number":
+        return float(result)
+    else:
+        return int(result)
+
+    text = ""
+
+while True:
+    allowed = valid_next_number_tokens(text, ptype)
+
+    if is_complete_number(text, ptype):
+        allowed.add(stop_id)
+
+    tok = constrained_max(ids, allowed, model)
+
+    if tok == stop_id:
+        break
+
+    ids.append(tok)
+    text += char_for_id[tok]
+
+return int(text) if ptype == "integer" else float(text)
+
 
 def fill_str(
     ids: list[int], model: Model, vocab: Vocabulary
     ) -> str:
     pass
 
+
 def fill(
     ids: list[int], model: Model, vocab: Vocabulary, ptype: str
     ) -> object:
     """Fill one parameter value of schema type ``ptype``."""
-    fill_type: dict[str, Callable[[list[int], Model, Vocabulary], object]] = {
-        "number": fill_num, "integer": fill_num,
-        "boolean": fill_bool, "string": fill_str,
-    }
-    return fill_type[ptype](ids, model, vocab)
+    if ptype == "boolean":
+        return fill_bool(ids, model, vocab)
+    elif ptype == "string":
+        return fill_str(ids, model, vocab)
+    elif ptype == "integer":
+        return fill_num(ids, model, vocab, ptype)
+    else:
+        return fill_num(ids, model, vocab, ptype)

@@ -70,6 +70,15 @@ class Vocabulary(BaseModel):
         token = self.id_token[id_num]
         return bytes(_BYTE_TABLE[char] for char in token)
 
+    def num_tokens(self) -> dict[str, int]:
+        chars = "-.0123456789"
+        char_ids = {}
+
+        for char in chars:
+            token_id = self.token_to_id(char)
+        char_ids[char] = token_id
+        return char_ids
+
     # TODO: WHY DO I HAVE MY OWN DECODE?
     # def decode(self, ids: list[int]) -> str:
     #     """Turn a list of token ids into real text.
