@@ -65,30 +65,33 @@ def fill_num(
     ids: list[int], model: Model, vocab: Vocabulary,
     ptype: str
 ) -> int | float:
-    allowed = vocab.num_tokens()
-    while True:
-        allowed = valid_next_number_tokens(text, ptype)
+    """Generate a number digit by digit and append its tokens to ``ids``.
 
-        if is_complete_number(text, ptype):
-            allowed.add(stop_id)
-
-        tok = constrained_max(ids, allowed, model)
-
-        if tok == stop_id:
-            break
-
-        ids.append(tok)
-        text += char_for_id[tok]
-    if ptype == "number":
-        return float(result)
-    else:
-        return int(result)
-
+    Each step masks the model to the characters that keep the text a valid
+    number: ``-`` only first, ``.`` only once and only for floats. Stop
+    tokens become legal once the text ends in a digit; the chosen stop is
+    not appended, the forced scaffold that follows writes the real one.
+    Returns an ``int`` for ``integer`` and a ``float`` otherwise.
+    """
+    base = vocab.num_tokens()
+    stops = vocab.stop_tokens()
+    minus = vocab.token_to_id("-")
+    dot = vocab.token_to_id(".")
     text = ""
-
-
-
-return int(text) if ptype == "integer" else float(text)
+    while True:
+        allowed = set(base)
+        if text:
+            allowed.discard(minus)
+        if (ptype == "integer") or ("." in text) or (text in ("", "-")):
+            allowed.discard(dot)
+        if text and text[-1].isdigit():
+            allowed |= stops
+        tok = constrained_max(ids, allowed, model)
+        if tok in stops:
+            break
+        ids.append(tok)
+        text += model.decode([tok])
+    return int(text) if ptype == "integer" else float(text)
 
 
 def fill_str(

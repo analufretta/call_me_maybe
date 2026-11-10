@@ -41,7 +41,7 @@ def main() -> None:
             results.append(obj)
             print(f'\nCHECK RESULT OBJET: {obj}\n')
         except Exception as e:
-            print(f"ERROR! skipes {prompt.prompt!r}: {e}")
+            print(f"ERROR! skiped {prompt.prompt!r}: {e}")
     write_output(args.output, results)
 
 

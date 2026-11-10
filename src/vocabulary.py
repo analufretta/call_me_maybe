@@ -70,14 +70,26 @@ class Vocabulary(BaseModel):
         token = self.id_token[id_num]
         return bytes(_BYTE_TABLE[char] for char in token)
 
-    def num_tokens(self) -> dict[str, int]:
+    def num_tokens(self) -> set[int]:
+        """Ids of the single-character tokens legal inside a number."""
         chars = "-.0123456789"
-        char_ids = {}
+        num_ids = set()
 
         for char in chars:
             token_id = self.token_to_id(char)
-        char_ids[char] = token_id
-        return char_ids
+            if token_id is not None:
+                num_ids.add(token_id)
+        return num_ids
+    
+    def stop_tokens(self) -> set[int]:
+        """Ids of the tokens that end number value."""
+        end_values = [",", "}", "]", "Ġ", "Ċ", "}}"]
+        end_ids = set()
+        for end_value in end_values:
+            token_id = self.token_to_id(end_value)
+            if token_id is not None:
+                end_ids.add(token_id)
+        return end_ids
 
     # TODO: WHY DO I HAVE MY OWN DECODE?
     # def decode(self, ids: list[int]) -> str:
