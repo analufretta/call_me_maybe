@@ -61,6 +61,14 @@ def fill_bool(
     return result
 
 
+# TODO: copy-only mask. Take number candidates from the request with a regex
+# (-?\d+(\.\d+)?), allow only next chars that keep the text a prefix of a
+# candidate, allow a stop only on a full candidate. Fall back to the free
+# numeric mask below when there are no candidates. Fixes digit loops (1/3 ->
+# 1.3333...) and the 30-digit copy error; needs `request` passed to fill().
+# TODO: words-to-number. Turn "minus five", "twenty-one" into digit candidates
+# and merge them with the regex ones, ordered by position in the request.
+# Do after fill_str.
 def fill_num(
     ids: list[int], model: Model, vocab: Vocabulary,
     ptype: str
