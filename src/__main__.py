@@ -31,7 +31,7 @@ def main() -> None:
     functions = load_functions(args.functions_definition)
     prompts = load_prompts(args.input)
 
-    model = Model()
+    model = Model(device="cpu")
     vocab = load_vocab(Path(model.get_path_to_vocab_file()))
 
     for prompt in prompts:

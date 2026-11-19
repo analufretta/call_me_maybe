@@ -1,0 +1,53 @@
+[
+  {
+    "prompt": "Greet shrek"
+  },
+  {
+    "prompt": "Greet Mary Jane Watson"
+  },
+  {
+    "prompt": "Greet José"
+  },
+  {
+    "prompt": "Greet 李明"
+  },
+  {
+    "prompt": "Reverse the string 'hello world'"
+  },
+  {
+    "prompt": "Reverse the string 'a, b} c]'"
+  },
+  {
+    "prompt": "Reverse the string 'she said \"hi\" to me'"
+  },
+  {
+    "prompt": "Reverse the string 'C:\\Users\\ana'"
+  },
+  {
+    "prompt": "Reverse the string 'I love pizza 🍕'"
+  },
+  {
+    "prompt": "Reverse the string ''"
+  },
+  {
+    "prompt": "Reverse the string 'The quick brown fox jumps over the lazy dog while the cat watches from the window and the bird sings'"
+  },
+  {
+    "prompt": "Reverse the string 'abababababababababababab'"
+  },
+  {
+    "prompt": "Replace all digits in 'Room 101 on floor 3' using the regex \\d+ with X"
+  },
+  {
+    "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat'"
+  },
+  {
+    "prompt": "Replace all vowels in 'Programming is fun' with asterisks"
+  },
+  {
+    "prompt": "Replace all numbers in \"Hello 34 I'm 233 years old\" with NUMBERS"
+  },
+  {
+    "prompt": "Replace all vowels in 'Programming is fUn Eio' with asterisk"
+  }
+]

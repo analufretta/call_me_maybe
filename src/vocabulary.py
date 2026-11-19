@@ -91,6 +91,19 @@ class Vocabulary(BaseModel):
                 end_ids.add(token_id)
         return end_ids
 
+    @cached_property
+    def quote_tokens(self) -> set[int]:
+        """Ids of the tokens whose text contains a double quote.
+        Any of these can close a JSON string (``"``, ``",``, ``"}``, ``."``).
+        Computed once on first access, then cached.
+        """
+        quote_ids = set()
+        for token_id, token in self.id_token.items():
+            if '"' in token:
+                quote_ids.add(token_id)
+        return quote_ids
+        
+
     # TODO: WHY DO I HAVE MY OWN DECODE?
     # def decode(self, ids: list[int]) -> str:
     #     """Turn a list of token ids into real text.

@@ -16,6 +16,8 @@ def prompt_function(prompt: TestPrompt, functions: list[FunctionDef]) -> str:
 RULES = (
     "Fill in the parameters of the function from the user request.\n"
     "Copy values exactly as written in the request. "
+    "When the request describes a symbol or pattern in words, "
+    "write the symbol or pattern itself."
     "Do not compute the answer.\n\n"
 )
 
@@ -24,9 +26,10 @@ EXAMPLE = (
     "Description: Demo function.\n"
     "Parameters: count (integer), price (number), label (string), "
     "flag (boolean)\n"
-    'User request: Add 3 boxes called "red box" at 4.5 each, enabled\n'
+    "User request: Add 3 boxes called 'the \"red\" box' at 4.5 each, "
+    "enabled\n"
     '{"name": "fn_demo", "parameters": {"count": 3, "price": 4.5, '
-    '"label": "red box", "flag": true}}\n\n'
+    '"label": "the \\"red\\" box", "flag": true}}\n\n'
 )
 
 

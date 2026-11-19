@@ -6,11 +6,14 @@ choices to the tokens legal for the target type, so the emitted JSON is valid
 by construction. Every model step goes through ``constrained_max``.
 """
 
-from typing import Callable
+import json
 
 from llm_sdk import Small_LLM_Model as Model
 
 from src.vocabulary import Vocabulary
+
+
+MAX_STR_TOKENS = 100
 
 
 def constrained_max(
@@ -104,13 +107,33 @@ def fill_num(
 
 def fill_str(
     ids: list[int], model: Model, vocab: Vocabulary
-    ) -> str:
-    pass
+) -> str:
+    closing_quotes = vocab.quote_tokens
+    force(ids, '"', model)
+    start = len(ids)
+    text = ""
+    for _ in range(MAX_STR_TOKENS):
+        logits = model.get_logits_from_input_ids(ids)
+        tok = max(range(len(logits)), key=lambda t: logits[t])
+        if tok in closing_quotes:
+            before, _, _ = model.decode([tok]).partition('"')
+            if before:
+                force(ids, before, model)
+            text += before
+            break
+        ids.append(tok)
+    text += model.decode(ids[start:])
+    force(ids, '"', model)
+    try:
+        text = json.loads('"' + text + '"')
+    except json.JSONDecodeError:
+        pass
+    return text
 
 
 def fill(
     ids: list[int], model: Model, vocab: Vocabulary, ptype: str
-    ) -> object:
+) -> object:
     """Fill one parameter value of schema type ``ptype``."""
     if ptype == "boolean":
         return fill_bool(ids, model, vocab)
