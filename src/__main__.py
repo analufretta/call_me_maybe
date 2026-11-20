@@ -39,7 +39,7 @@ def main() -> None:
             function = pick_function(prompt, functions, model)
             obj = generate_output(prompt, function, model, vocab) # TODO: finish up
             results.append(obj)
-            print(f'\nCHECK RESULT OBJET: {obj}\n')
+            print(f'\nCHECK RESULT OBJECT: {obj}\n')
         except Exception as e:
             print(f"ERROR! skipped {prompt.prompt!r}: {e}")
     write_output(args.output, results)

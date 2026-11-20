@@ -10,9 +10,10 @@ MYPY_FLAGS = --warn-return-any --warn-unused-ignores --ignore-missing-imports \
              --disallow-untyped-defs --check-untyped-defs
 
 install:
-	@command -v uv >/dev/null 2>&1 || \
-	{ echo "uv missing. Installing..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
-	@export PATH="$$HOME/.local/bin:$$PATH"; uv sync
+	@export PATH="$$HOME/.local/bin:$$PATH"; \
+	command -v uv >/dev/null 2>&1 || \
+	{ echo "uv missing. Installing..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }; \
+	uv sync --locked --link-mode=copy
 
 run:
 	uv run python -m src \
@@ -43,5 +44,5 @@ lint:
 	--check-untyped-defs
 
 lint-strict:
-	uv run flake8 . --extend-exclude .venv/,llm_sdk/
-	uv run mypy . --exclude '(\.venv|llm_sdk)/' --strict
+	@uv run flake8 . --extend-exclude .venv/,llm_sdk/
+	@uv run mypy . --exclude '(\.venv|llm_sdk)/' --strict
