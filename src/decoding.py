@@ -105,11 +105,20 @@ def fill_num(
     return int(text) if ptype == "integer" else float(text)
 
 
-def fill_str(
+def generate_string_bytes(
     ids: list[int], model: Model, vocab: Vocabulary
-) -> str:
-    force(ids, '"', model)
-    content_start = len(ids)
+) -> bytes:
+    """Generate tokens until an unescaped closing quote appears.
+
+    Accepted tokens are appended to ``ids``. The closing quote itself
+    is not.
+
+    Returns:
+        The raw bytes of the string content, without the quotes.
+
+    Raises:
+        ValueError: If the string does not close within MAX_STR_TOKENS.
+    """
     content_bytes = bytearray()
     escaped = False
 
@@ -130,7 +139,7 @@ def fill_str(
 
         if closing_at is not None:
             content_bytes.extend(token_bytes[:closing_at])
-            break
+            return bytes(content_bytes)
 
         ids.append(tok)
         content_bytes.extend(token_bytes)
@@ -139,16 +148,21 @@ def fill_str(
             f"Generated string did not close within {MAX_STR_TOKENS} tokens"
         )
 
+
+def fill_str(ids: list[int], model: Model, vocab: Vocabulary) -> str:
+    """Write a JSON string value into ``ids`` and return its Python value."""
+    force(ids, '"', model)
+    content_start = len(ids)
+
+    content_bytes = generate_string_bytes(ids, model, vocab)
+
     try:
         content = content_bytes.decode("utf-8")
-        value = json.loads(f'"{content}"')
+        value: str = json.loads(f'"{content}"')
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("Model generated an invalid JSON string") from exc
 
-    if not isinstance(value, str):
-        raise ValueError("Decoded JSON value is not a string")
-
-    # Replace the generated token sequence with the exact content and delimiter.
+    # Replace the generated tokens with the exact content and delimiter.
     ids[content_start:] = model.encode(content)[0].tolist()
     force(ids, '"', model)
 

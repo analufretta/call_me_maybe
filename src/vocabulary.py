@@ -2,11 +2,9 @@
 byte-level decoding for the model vocab."""
 
 
-from functools import cached_property
-
 from pydantic import BaseModel
 
-# TODO: UNDERSTAND IT BETTER
+
 def _build_byte_table() -> dict[str, int]:
     """GPT-2 / Qwen byte-level BPE table, reversed: costume char -> raw byte.
 
@@ -90,31 +88,3 @@ class Vocabulary(BaseModel):
             if token_id is not None:
                 end_ids.add(token_id)
         return end_ids
-
-    @cached_property
-    def quote_tokens(self) -> set[int]:
-        """Ids of the tokens whose text contains a double quote.
-        Any of these can close a JSON string (``"``, ``",``, ``"}``, ``."``).
-        Computed once on first access, then cached.
-        """
-        quote_ids = set()
-        for token_id, token in self.id_token.items():
-            if '"' in token:
-                quote_ids.add(token_id)
-        return quote_ids
-        
-
-    # TODO: WHY DO I HAVE MY OWN DECODE?
-    # def decode(self, ids: list[int]) -> str:
-    #     """Turn a list of token ids into real text.
-
-    #     Collects every token's raw bytes FIRST, then decodes the whole run as
-    #     UTF-8 once -- so a token holding only part of a multi-byte character
-    #     never crashes on its own.
-    #     """
-    #     buffer = bytearray()
-
-    #     for id_num in ids:
-    #         buffer += self.token_bytes(id_num)
-    #     return buffer.decode("utf-8")
-
