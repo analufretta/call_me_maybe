@@ -1,5 +1,7 @@
 """CLI entrypoint: parse arguments, load inputs, run the pipeline."""
 
+import sys
+
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
@@ -25,13 +27,16 @@ def parse() -> Namespace:
 
 def main() -> None:
     """Parse CLI arguments and run the function-calling pipeline."""
-    results: list[dict] = []
+    results: list[dict[str, object]] = []
 
     args = parse()
     functions = load_functions(args.functions_definition)
     prompts = load_prompts(args.input)
 
-    model = Model(device="cpu")
+    try:
+        model = Model(device="cpu")
+    except Exception as e:
+        raise SystemExit(f"error: cannot load the model: {e}")
     vocab = load_vocab(Path(model.get_path_to_vocab_file()))
 
     for prompt in prompts:
@@ -41,7 +46,7 @@ def main() -> None:
             results.append(obj)
             print(f'\nCHECK RESULT OBJECT: {obj}\n')
         except Exception as e:
-            print(f"ERROR! skipped {prompt.prompt!r}: {e}")
+            print(f"ERROR! skipped {prompt.prompt!r}: {e}", file=sys.stderr)
     write_output(args.output, results)
 
 

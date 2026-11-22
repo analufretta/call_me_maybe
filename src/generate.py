@@ -51,7 +51,7 @@ def pick_function(
 def generate_output(
     prompt: TestPrompt, function: FunctionDef,
     model: Model, vocab: Vocabulary
-) -> dict:
+) -> dict[str, object]:
     """Build one output object for ``prompt`` calling ``function``.
 
     Walks the JSON state machine: forced scaffold (keys, punctuation)
@@ -66,7 +66,6 @@ def generate_output(
             force(ids, ", ", model)
         force(ids, f'"{param}": ', model)
         params[param] = fill(ids, model, vocab, ptype.type)
-    force(ids, "}}", model)
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params
     }

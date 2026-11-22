@@ -8,12 +8,15 @@ by construction. Every model step goes through ``constrained_max``.
 
 import json
 
+import numpy as np
+
 from llm_sdk import Small_LLM_Model as Model
 
 from src.vocabulary import Vocabulary
 
 
 MAX_STR_TOKENS = 100
+MAX_NUM_TOKENS = 20
 
 
 def constrained_max(
@@ -48,19 +51,15 @@ def force(ids: list[int], text: str, model: Model) -> None:
 def fill_bool(
     ids: list[int], model: Model, vocab: Vocabulary
 ) -> bool:
-    """Choose ``true`` or ``false`` and append its tokens to ``ids``.
+    """Choose ``true`` or ``false`` and append its token to ``ids``.
 
-    The two literals start with different tokens, so one masked model step
-    over those first tokens decides the value. The rest of the chosen
-    literal is forced. Returns the Python bool, not the text, so that
-    ``json.dump`` writes a real JSON boolean.
+    Each literal is a single vocab token, so one masked model step over
+    those two ids decides the value. Returns the Python bool, not the text,
+    so that ``json.dump`` writes a real JSON boolean.
     """
-    true_ids = model.encode("true")[0].tolist()
-    false_ids = model.encode("false")[0].tolist()
-    allowed = {true_ids[0], false_ids[0]}
-    first_tok = constrained_max(ids, allowed, model)
-    result = first_tok == true_ids[0]
-    ids.extend(true_ids if result else false_ids)
+    true_id, false_id = vocab.bool_tokens
+    result = constrained_max(ids, {true_id, false_id}, model) == true_id
+    ids.append(true_id if result else false_id)
     return result
 
 
@@ -84,12 +83,12 @@ def fill_num(
     not appended, the forced scaffold that follows writes the real one.
     Returns an ``int`` for ``integer`` and a ``float`` otherwise.
     """
-    base = vocab.num_tokens()
-    stops = vocab.stop_tokens()
+    base = vocab.num_tokens
+    stops = vocab.stop_tokens
     minus = vocab.token_to_id("-")
     dot = vocab.token_to_id(".")
     text = ""
-    while True:
+    for _ in range(MAX_NUM_TOKENS):
         allowed = set(base)
         if text:
             allowed.discard(minus)
@@ -102,6 +101,10 @@ def fill_num(
             break
         ids.append(tok)
         text += model.decode([tok])
+    else:
+        raise ValueError(
+            f"Generated number is bigger than {MAX_NUM_TOKENS} tokens"
+        )
     return int(text) if ptype == "integer" else float(text)
 
 
@@ -123,8 +126,8 @@ def generate_string_bytes(
     escaped = False
 
     for _ in range(MAX_STR_TOKENS):
-        logits = model.get_logits_from_input_ids(ids)
-        tok = max(range(len(logits)), key=lambda t: logits[t])
+        logits = np.asarray(model.get_logits_from_input_ids(ids))
+        tok = int(np.argmax(logits[:vocab.size]))
         token_bytes = vocab.token_bytes(tok)
 
         closing_at = None
@@ -158,7 +161,6 @@ def fill_str(ids: list[int], model: Model, vocab: Vocabulary) -> str:
 
     try:
         content = content_bytes.decode("utf-8")
-        value: str = json.loads(f'"{content}"')
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("Model generated an invalid JSON string") from exc
 
@@ -177,7 +179,5 @@ def fill(
         return fill_bool(ids, model, vocab)
     elif ptype == "string":
         return fill_str(ids, model, vocab)
-    elif ptype == "integer":
-        return fill_num(ids, model, vocab, ptype)
     else:
         return fill_num(ids, model, vocab, ptype)

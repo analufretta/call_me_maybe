@@ -1,6 +1,7 @@
-"""Vocabulary: token<->id lookups and
-byte-level decoding for the model vocab."""
+"""Vocabulary: token<->id lookups and byte decoding for the model vocab."""
 
+
+from functools import cached_property
 
 from pydantic import BaseModel
 
@@ -34,10 +35,10 @@ class Vocabulary(BaseModel):
     """Token<->id lookups loaded from the model's vocab.json.
 
     The strings are still in byte-level "costume" form (``Ġ`` for a leading
-    space, ``Ċ`` for newline, etc.) exactly as they appear in vocab.json;
-    decoding them to real text is a later step. This skeleton only holds the
-    two maps so later tasks (byte decoding, precomputed helper sets) can build
-    on it.
+    space, ``Ċ`` for newline, etc.) exactly as they appear in vocab.json.
+    ``token_bytes`` turns a token back into its raw bytes, and the cached
+    ids (``num_tokens``, ``stop_tokens``, ``bool_tokens``) are built once
+    on first use and reused for every prompt.
 
     Attributes
     ----------
@@ -68,23 +69,30 @@ class Vocabulary(BaseModel):
         token = self.id_token[id_num]
         return bytes(_BYTE_TABLE[char] for char in token)
 
-    def num_tokens(self) -> set[int]:
+    @cached_property
+    def num_tokens(self) -> frozenset[int]:
         """Ids of the single-character tokens legal inside a number."""
         chars = "-.0123456789"
-        num_ids = set()
+        num_ids: set[int] = set()
 
         for char in chars:
             token_id = self.token_to_id(char)
             if token_id is not None:
                 num_ids.add(token_id)
-        return num_ids
-    
-    def stop_tokens(self) -> set[int]:
+        return frozenset(num_ids)
+
+    @cached_property
+    def stop_tokens(self) -> frozenset[int]:
         """Ids of the tokens that end number value."""
         end_values = [",", "}", "]", "Ġ", "Ċ", "}}"]
-        end_ids = set()
+        end_ids: set[int] = set()
         for end_value in end_values:
             token_id = self.token_to_id(end_value)
             if token_id is not None:
                 end_ids.add(token_id)
-        return end_ids
+        return frozenset(end_ids)
+
+    @cached_property
+    def bool_tokens(self) -> tuple[int, int]:
+        """Ids of the ``true`` and ``false`` tokens, as ``(true, false)``."""
+        return self.token_id["true"], self.token_id["false"]

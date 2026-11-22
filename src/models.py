@@ -4,6 +4,7 @@ from pydantic import BaseModel, field_validator
 
 SUPPORTED = {"number", "integer", "string", "boolean"}
 
+
 class ParamSpec(BaseModel):
     """Represent one typed slot, e.g. ``{"type": "number"}``.
 
@@ -18,7 +19,8 @@ class ParamSpec(BaseModel):
     def known_type(cls, value: str) -> str:
         if value not in SUPPORTED:
             raise ValueError(
-                f"unsupported type {value!r}, expected one of {sorted(SUPPORTED)}"
+                f"unsupported type {value!r}, "
+                f"expected one of {sorted(SUPPORTED)}"
             )
         return value
 

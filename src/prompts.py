@@ -48,11 +48,11 @@ EXAMPLE = (
     "Description: Replace regex matches in a string.\n"
     "Parameters: source_string (string), regex (string), "
     "replacement (string)\n"
-    'User request: "Replace all vowels in \"Programming is fun eio\" with "'
-    "asterisks"
+    'User request: Replace all vowels in "Programming is fun" with '
+    "asterisks\n"
     '{"name": "fn_substitute_string_with_regex", '
-    '"parameters": {"source_string": "Room 101", "regex": "[aeiouAEIOU]", '
-    '"replacement": "*"}}\n\n'
+    '"parameters": {"source_string": "Programming is fun", '
+    '"regex": "[aeiouAEIOU]", "replacement": "*"}}\n\n'
 )
 
 
