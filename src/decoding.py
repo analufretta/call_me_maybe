@@ -8,14 +8,12 @@ by construction. Every model step goes through ``constrained_max``.
 
 import json
 
-import numpy as np
-
 from llm_sdk import Small_LLM_Model as Model
 
+from src.strings import double_check, generate_string_bytes
 from src.vocabulary import Vocabulary
 
 
-MAX_STR_TOKENS = 100
 MAX_NUM_TOKENS = 20
 
 
@@ -108,61 +106,22 @@ def fill_num(
     return int(text) if ptype == "integer" else float(text)
 
 
-def generate_string_bytes(
-    ids: list[int], model: Model, vocab: Vocabulary
-) -> bytes:
-    """Generate tokens until an unescaped closing quote appears.
-
-    Accepted tokens are appended to ``ids``. The closing quote itself
-    is not.
-
-    Returns:
-        The raw bytes of the string content, without the quotes.
-
-    Raises:
-        ValueError: If the string does not close within MAX_STR_TOKENS.
-    """
-    content_bytes = bytearray()
-    escaped = False
-
-    for _ in range(MAX_STR_TOKENS):
-        logits = np.asarray(model.get_logits_from_input_ids(ids))
-        tok = int(np.argmax(logits[:vocab.size]))
-        token_bytes = vocab.token_bytes(tok)
-
-        closing_at = None
-        for i, byte in enumerate(token_bytes):
-            if escaped:
-                escaped = False
-            elif byte == ord("\\"):
-                escaped = True
-            elif byte == ord('"'):
-                closing_at = i
-                break
-
-        if closing_at is not None:
-            content_bytes.extend(token_bytes[:closing_at])
-            return bytes(content_bytes)
-
-        ids.append(tok)
-        content_bytes.extend(token_bytes)
-    else:
-        raise ValueError(
-            f"Generated string did not close within {MAX_STR_TOKENS} tokens"
-        )
-
-
-def fill_str(ids: list[int], model: Model, vocab: Vocabulary) -> str:
+def fill_str(
+    ids: list[int], model: Model, vocab: Vocabulary, request: str
+) -> str:
     """Write a JSON string value into ``ids`` and return its Python value."""
     force(ids, '"', model)
     content_start = len(ids)
 
     content_bytes = generate_string_bytes(ids, model, vocab)
-
     try:
         content = content_bytes.decode("utf-8")
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ValueError("Model generated an invalid JSON string") from exc
+    except UnicodeDecodeError as exc:
+        raise ValueError("Model generated invalid UTF-8") from exc
+
+    value = double_check(content, request)
+    if value != content:
+        content = json.dumps(value, ensure_ascii=False)[1:-1]
 
     # Replace the generated tokens with the exact content and delimiter.
     ids[content_start:] = model.encode(content)[0].tolist()
@@ -172,12 +131,13 @@ def fill_str(ids: list[int], model: Model, vocab: Vocabulary) -> str:
 
 
 def fill(
-    ids: list[int], model: Model, vocab: Vocabulary, ptype: str
+    ids: list[int], model: Model, vocab: Vocabulary, ptype: str,
+    request: str
 ) -> object:
     """Fill one parameter value of schema type ``ptype``."""
     if ptype == "boolean":
         return fill_bool(ids, model, vocab)
     elif ptype == "string":
-        return fill_str(ids, model, vocab)
+        return fill_str(ids, model, vocab, request)
     else:
         return fill_num(ids, model, vocab, ptype)

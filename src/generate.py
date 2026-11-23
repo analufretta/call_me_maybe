@@ -65,7 +65,7 @@ def generate_output(
         if i:
             force(ids, ", ", model)
         force(ids, f'"{param}": ', model)
-        params[param] = fill(ids, model, vocab, ptype.type)
+        params[param] = fill(ids, model, vocab, ptype.type, prompt.prompt)
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params
     }

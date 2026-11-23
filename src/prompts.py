@@ -40,18 +40,18 @@ EXAMPLE = (
     "Function: fn_add_numbers\n"
     "Description: Add two numbers together.\n"
     "Parameters: a (number), b (number)\n"
-    "User request: What is the sum of 265 and five?\n"
-    '{"name": "fn_add_numbers", "parameters": {"a": 265.0, "b": 5.0}}\n\n'
+    "User request: What is the sum of 265 and minus five?\n"
+    '{"name": "fn_add_numbers", "parameters": {"a": 265.0, "b": -5.0}}\n\n'
 
     "Example 2:\n"
     "Function: fn_substitute_string_with_regex\n"
     "Description: Replace regex matches in a string.\n"
     "Parameters: source_string (string), regex (string), "
     "replacement (string)\n"
-    'User request: Replace all vowels in "Programming is fun" with '
+    'User request: Replace all vowels in "Programming is fun]" with '
     "asterisks\n"
     '{"name": "fn_substitute_string_with_regex", '
-    '"parameters": {"source_string": "Programming is fun", '
+    '"parameters": {"source_string": "Programming is fun]", '
     '"regex": "[aeiouAEIOU]", "replacement": "*"}}\n\n'
 )
 
