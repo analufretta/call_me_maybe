@@ -75,7 +75,7 @@ def fill_num(
     one. Returns an ``int`` for ``integer`` and a ``float`` otherwise.
     """
     candidates = number_candidates(request, ptype)
-    copy = len(candidates) >= num_params
+    copy = False
     if copy:
         negative = any(c.startswith("-") for c in candidates)
         positive = any(not c.startswith("-") for c in candidates)

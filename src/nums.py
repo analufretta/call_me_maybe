@@ -8,6 +8,8 @@ requests whose numbers are not all written in digits (``minus five``).
 
 import re
 
+from decimal import Decimal
+
 from llm_sdk import Small_LLM_Model as Model
 
 from src.vocabulary import Vocabulary
@@ -16,7 +18,7 @@ from src.vocabulary import Vocabulary
 MAX_NUM_TOKENS = 50
 
 # A fraction is tried first, so "1/3" is one number and not "1" and "3".
-NUMBER = re.compile(r"-?\d+/\d+|-?\d+(?:\.\d+)?")
+NUMBER = re.compile(r"-?\d+\/\d+|-?\d+(?:\.\d+)?")
 
 
 def number_candidates(request: str, ptype: str) -> list[str]:
@@ -33,7 +35,7 @@ def number_candidates(request: str, ptype: str) -> list[str]:
                 continue
             match = repr(int(num) / int(den))
             if "e" in match:
-                continue  # exponent form, e.g. 1e-05: not typeable here
+                match = format(Decimal(repr(int(num) / int(den))), "f")
         if ptype == "integer" and "." in match:
             continue
         found.append(match)
