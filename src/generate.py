@@ -61,17 +61,11 @@ def generate_output(
 
     ids = model.encode(prompt_output(function, prompt))[0].tolist()
     params: dict[str, object] = {}
-    num_params = sum(
-        spec.type in ("number", "integer")
-        for spec in function.parameters.values()
-    )
     for i, (param, ptype) in enumerate(function.parameters.items()):
         if i:
             force(ids, ", ", model)
         force(ids, f'"{param}": ', model)
-        params[param] = fill(
-            ids, model, vocab, ptype.type, prompt.prompt, num_params
-        )
+        params[param] = fill(ids, model, vocab, ptype.type, prompt.prompt)
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params
     }

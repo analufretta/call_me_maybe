@@ -10,9 +10,7 @@ import json
 
 from llm_sdk import Small_LLM_Model as Model
 
-from src.nums import (
-    MAX_NUM_TOKENS, choose_sign, copy_mask, free_mask, number_candidates
-)
+from src.nums import MAX_NUM_TOKENS, choose_sign, free_mask
 from src.strings import double_check, generate_string_bytes
 from src.vocabulary import Vocabulary
 
@@ -62,33 +60,18 @@ def fill_bool(
 
 
 def fill_num(
-    ids: list[int], model: Model, vocab: Vocabulary, ptype: str,
-    request: str, num_params: int
+    ids: list[int], model: Model, vocab: Vocabulary, ptype: str
 ) -> int | float:
     """Generate a number digit by digit and append its tokens to ``ids``.
 
-    When the request writes at least ``num_params`` numbers, each step is
-    masked to copying one of them (COPY); otherwise only number syntax is
-    enforced (FREE), so the model can convert words like ``minus five``.
-    The sign is decided first by ``choose_sign``. The chosen stop token
-    is not appended; the forced scaffold that follows writes the real
-    one. Returns an ``int`` for ``integer`` and a ``float`` otherwise.
+    Each step is masked to number syntax only, so the model can convert
+    words like ``minus five``. The sign is decided first by
+    ``choose_sign``. The chosen stop token is not appended; the forced
+    scaffold that follows writes the real one. Returns an ``int`` for ``integer`` and a ``float`` otherwise.
     """
-    candidates = number_candidates(request, ptype)
-    copy = False
-    if copy:
-        negative = any(c.startswith("-") for c in candidates)
-        positive = any(not c.startswith("-") for c in candidates)
-    else:
-        negative = positive = True
-    text = choose_sign(ids, model, vocab, negative, positive)
-    if copy and not text:
-        candidates = [c for c in candidates if not c.startswith("-")]
+    text = choose_sign(ids, model, vocab)
     for _ in range(MAX_NUM_TOKENS):
-        if copy:
-            allowed = copy_mask(text, candidates, vocab)
-        else:
-            allowed = free_mask(text, ptype, vocab)
+        allowed = free_mask(text, ptype, vocab)
         tok = constrained_max(ids, allowed, model)
         if tok in vocab.stop_tokens:
             break
@@ -127,7 +110,7 @@ def fill_str(
 
 def fill(
     ids: list[int], model: Model, vocab: Vocabulary, ptype: str,
-    request: str, num_params: int
+    request: str
 ) -> object:
     """Fill one parameter value of schema type ``ptype``."""
     if ptype == "boolean":
@@ -135,4 +118,4 @@ def fill(
     elif ptype == "string":
         return fill_str(ids, model, vocab, request)
     else:
-        return fill_num(ids, model, vocab, ptype, request, num_params)
+        return fill_num(ids, model, vocab, ptype)

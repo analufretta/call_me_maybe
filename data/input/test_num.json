@@ -28,5 +28,11 @@
   },
   {
     "prompt": "What is the sum of minus five and ten?"
+  },
+  {
+    "prompt": "What is the sum of 0.000123 and 98765.4321?"
+  },
+  {
+    "prompt": "In 2024, what is the sum of 7 and 9?"
   }
 ]
