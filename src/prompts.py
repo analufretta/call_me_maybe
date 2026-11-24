@@ -40,10 +40,17 @@ EXAMPLE = (
     "Function: fn_add_numbers\n"
     "Description: Add two numbers together.\n"
     "Parameters: a (number), b (number)\n"
-    "User request: What is the sum of 265 and minus five?\n"
-    '{"name": "fn_add_numbers", "parameters": {"a": 265.0, "b": -5.0}}\n\n'
+    "User request: What is the sum of minus seven and twelve?\n"
+    '{"name": "fn_add_numbers", "parameters": {"a": -7.0, "b": 12.0}}\n\n'
 
     "Example 2:\n"
+    "Function: fn_add_numbers\n"
+    "Description: Add two numbers together.\n"
+    "Parameters: a (number), b (number)\n"
+    "User request: Add 265 and negative four\n"
+    '{"name": "fn_add_numbers", "parameters": {"a": 265.0, "b": -4.0}}\n\n'
+
+    "Example 3:\n"
     "Function: fn_substitute_string_with_regex\n"
     "Description: Replace regex matches in a string.\n"
     "Parameters: source_string (string), regex (string), "

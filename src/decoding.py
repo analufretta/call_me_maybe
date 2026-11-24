@@ -10,11 +10,11 @@ import json
 
 from llm_sdk import Small_LLM_Model as Model
 
+from src.nums import (
+    MAX_NUM_TOKENS, choose_sign, copy_mask, free_mask, number_candidates
+)
 from src.strings import double_check, generate_string_bytes
 from src.vocabulary import Vocabulary
-
-
-MAX_NUM_TOKENS = 20
 
 
 def constrained_max(
@@ -61,41 +61,36 @@ def fill_bool(
     return result
 
 
-# TODO: copy-only mask. Take number candidates from the request with a regex
-# (-?\d+(\.\d+)?), allow only next chars that keep the text a prefix of a
-# candidate, allow a stop only on a full candidate. Fall back to the free
-# numeric mask below when there are no candidates. Fixes digit loops (1/3 ->
-# 1.3333...) and the 30-digit copy error; needs `request` passed to fill().
-# TODO: words-to-number. Turn "minus five", "twenty-one" into digit candidates
-# and merge them with the regex ones, ordered by position in the request.
-# Do after fill_str.
 def fill_num(
-    ids: list[int], model: Model, vocab: Vocabulary,
-    ptype: str
+    ids: list[int], model: Model, vocab: Vocabulary, ptype: str,
+    request: str, num_params: int
 ) -> int | float:
     """Generate a number digit by digit and append its tokens to ``ids``.
 
-    Each step masks the model to the characters that keep the text a valid
-    number: ``-`` only first, ``.`` only once and only for floats. Stop
-    tokens become legal once the text ends in a digit; the chosen stop is
-    not appended, the forced scaffold that follows writes the real one.
-    Returns an ``int`` for ``integer`` and a ``float`` otherwise.
+    When the request writes at least ``num_params`` numbers, each step is
+    masked to copying one of them (COPY); otherwise only number syntax is
+    enforced (FREE), so the model can convert words like ``minus five``.
+    The sign is decided first by ``choose_sign``. The chosen stop token
+    is not appended; the forced scaffold that follows writes the real
+    one. Returns an ``int`` for ``integer`` and a ``float`` otherwise.
     """
-    base = vocab.num_tokens
-    stops = vocab.stop_tokens
-    minus = vocab.token_to_id("-")
-    dot = vocab.token_to_id(".")
-    text = ""
+    candidates = number_candidates(request, ptype)
+    copy = len(candidates) >= num_params
+    if copy:
+        negative = any(c.startswith("-") for c in candidates)
+        positive = any(not c.startswith("-") for c in candidates)
+    else:
+        negative = positive = True
+    text = choose_sign(ids, model, vocab, negative, positive)
+    if copy and not text:
+        candidates = [c for c in candidates if not c.startswith("-")]
     for _ in range(MAX_NUM_TOKENS):
-        allowed = set(base)
-        if text:
-            allowed.discard(minus)
-        if (ptype == "integer") or ("." in text) or (text in ("", "-")):
-            allowed.discard(dot)
-        if text and text[-1].isdigit():
-            allowed |= stops
+        if copy:
+            allowed = copy_mask(text, candidates, vocab)
+        else:
+            allowed = free_mask(text, ptype, vocab)
         tok = constrained_max(ids, allowed, model)
-        if tok in stops:
+        if tok in vocab.stop_tokens:
             break
         ids.append(tok)
         text += model.decode([tok])
@@ -132,7 +127,7 @@ def fill_str(
 
 def fill(
     ids: list[int], model: Model, vocab: Vocabulary, ptype: str,
-    request: str
+    request: str, num_params: int
 ) -> object:
     """Fill one parameter value of schema type ``ptype``."""
     if ptype == "boolean":
@@ -140,4 +135,4 @@ def fill(
     elif ptype == "string":
         return fill_str(ids, model, vocab, request)
     else:
-        return fill_num(ids, model, vocab, ptype)
+        return fill_num(ids, model, vocab, ptype, request, num_params)
