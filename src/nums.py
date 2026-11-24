@@ -36,13 +36,29 @@ def free_mask(text: str, ptype: str, vocab: Vocabulary) -> set[int]:
     """Return the token ids that keep ``text`` a valid number.
 
     ``-`` only first, ``.`` only once and only for floats, after a digit.
+    ``/`` once, for floats, after a whole number, so a fraction can be
+    copied from the request; its denominator is whole and not zero.
     Stop tokens become legal once the text ends in a digit.
     """
     allowed = set(vocab.num_tokens)
     if text:
         allowed.discard(vocab.token_to_id("-"))
-    if ptype == "integer" or "." in text or text in ("", "-"):
+    if ptype == "integer" or "." in text or "/" in text or text in ("", "-"):
         allowed.discard(vocab.token_to_id("."))
+    slash = vocab.token_to_id("/")
+    if (ptype == "number" and slash is not None and text[-1:].isdigit()
+            and "." not in text and "/" not in text):
+        allowed.add(slash)
+    if text.endswith("/"):
+        allowed.discard(vocab.token_to_id("0"))
     if text and text[-1].isdigit():
         allowed |= vocab.stop_tokens
     return allowed
+
+
+def to_number(text: str, ptype: str) -> int | float:
+    """Return the value of the generated ``text``; a fraction is divided."""
+    if "/" in text:
+        num, den = text.split("/")
+        return int(num) / int(den)
+    return int(text) if ptype == "integer" else float(text)

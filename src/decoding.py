@@ -10,7 +10,7 @@ import json
 
 from llm_sdk import Small_LLM_Model as Model
 
-from src.nums import MAX_NUM_TOKENS, choose_sign, free_mask
+from src.nums import MAX_NUM_TOKENS, choose_sign, free_mask, to_number
 from src.strings import double_check, generate_string_bytes
 from src.vocabulary import Vocabulary
 
@@ -67,7 +67,9 @@ def fill_num(
     Each step is masked to number syntax only, so the model can convert
     words like ``minus five``. The sign is decided first by
     ``choose_sign``. The chosen stop token is not appended; the forced
-    scaffold that follows writes the real one. Returns an ``int`` for ``integer`` and a ``float`` otherwise.
+    scaffold that follows writes the real one. Returns an ``int`` for
+    ``integer`` and a ``float`` otherwise; ``1/3`` is divided by
+    ``to_number``.
     """
     text = choose_sign(ids, model, vocab)
     for _ in range(MAX_NUM_TOKENS):
@@ -81,7 +83,7 @@ def fill_num(
         raise ValueError(
             f"Generated number is bigger than {MAX_NUM_TOKENS} tokens"
         )
-    return int(text) if ptype == "integer" else float(text)
+    return to_number(text, ptype)
 
 
 def fill_str(
