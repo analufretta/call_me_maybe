@@ -1,0 +1,14 @@
+[
+  {
+    "name": "fn_get_random_joke",
+    "description": "Return a random joke. Takes no arguments.",
+    "parameters": {},
+    "returns": { "type": "string" }
+  },
+  {
+    "name": "fn_add_numbers",
+    "description": "Add two numbers together and return their sum.",
+    "parameters": { "a": { "type": "number" }, "b": { "type": "number" } },
+    "returns": { "type": "number" }
+  }
+]

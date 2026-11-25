@@ -1,0 +1,8 @@
+[
+  {
+    "name": 123,
+    "description": null,
+    "parameters": { "a": { "type": "number" } },
+    "returns": "number"
+  }
+]

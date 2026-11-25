@@ -1,0 +1,7 @@
+[
+  {
+    "name": "fn_add_numbers",
+    "parameters": { "a": { "type": "number" }, "b": { "type": "number" } },
+    "returns": { "type": "number" }
+  }
+]

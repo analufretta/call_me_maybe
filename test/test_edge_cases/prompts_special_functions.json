@@ -1,0 +1,6 @@
+[
+  { "prompt": "Tell me a random joke" },
+  { "prompt": "Create a user named Ana Barros, 29 years old, 1.68 m tall, email ana@example.com, not an admin, subscribed to the newsletter, from Brazil" },
+  { "prompt": "Create an admin user John Doe, age 40" },
+  { "prompt": "Say hi to Mary, 3 times" }
+]

@@ -1,0 +1,48 @@
+[
+  { "prompt": "Convert 25 degrees Celsius to Fahrenheit" },
+  { "prompt": "What is -40°C in Fahrenheit?" },
+  { "prompt": "Convert 36.6 Celsius to Fahrenheit" },
+  { "prompt": "How hot is absolute zero, -273.15 C, in Fahrenheit?" },
+  { "prompt": "Convert zero degrees Celsius to Fahrenheit" },
+
+  { "prompt": "Is 17 a prime number?" },
+  { "prompt": "Check if 1 is prime" },
+  { "prompt": "Is 7919 prime?" },
+  { "prompt": "Is -7 a prime number?" },
+  { "prompt": "Is 4.5 prime?" },
+  { "prompt": "Is twelve a prime number?" },
+
+  { "prompt": "How many words are in 'the quick brown fox'?" },
+  { "prompt": "Count the words in \"Hello, world! How are you?\"" },
+  { "prompt": "Count the words in ''" },
+  { "prompt": "How many words are in 'one   two    three' with extra spaces?" },
+
+  { "prompt": "How many characters are in 'hello world', ignoring spaces?" },
+  { "prompt": "Count all characters in 'hello world' including spaces" },
+  { "prompt": "How many letters does 'café' have?" },
+
+  { "prompt": "Repeat 'ha' 3 times separated by '-'" },
+  { "prompt": "Repeat the word 'echo' five times with a comma and space between them" },
+  { "prompt": "Repeat '🎉' 4 times with no separator" },
+  { "prompt": "Repeat 'abc' 0 times separated by ' '" },
+
+  { "prompt": "What tip should I leave on a $50 bill at 15%?" },
+  { "prompt": "Calculate a 20 percent tip on 87.35 euros and round it up" },
+  { "prompt": "Tip 18% on a bill of 123.45, don't round" },
+  { "prompt": "I paid 1,250.00 for dinner, what is a 10% tip?" },
+
+  { "prompt": "Set an alarm for 7:30 every day" },
+  { "prompt": "Wake me up at 06:05 tomorrow only" },
+  { "prompt": "Set an alarm for 11 pm, repeating daily" },
+  { "prompt": "Set an alarm at 0:00 once" },
+
+  { "prompt": "What is 2 to the power of 10?" },
+  { "prompt": "Raise 9 to the 0.5 power" },
+  { "prompt": "Compute 10^-3" },
+  { "prompt": "What is -2 raised to the 3rd power?" },
+  { "prompt": "What is 1.5e3 squared?" },
+
+  { "prompt": "In 2025 the temperature was 30 Celsius, what is that in Fahrenheit?" },
+  { "prompt": "Is the number 2 prime, given that 3 and 5 are?" },
+  { "prompt": "What's the weather like today?" }
+]

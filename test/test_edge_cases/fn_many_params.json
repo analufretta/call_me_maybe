@@ -1,0 +1,17 @@
+[
+  {
+    "name": "fn_create_user",
+    "description": "Create a user account.",
+    "parameters": {
+      "first_name": { "type": "string" },
+      "last_name": { "type": "string" },
+      "age": { "type": "integer" },
+      "height_m": { "type": "number" },
+      "email": { "type": "string" },
+      "is_admin": { "type": "boolean" },
+      "newsletter": { "type": "boolean" },
+      "country": { "type": "string" }
+    },
+    "returns": { "type": "boolean" }
+  }
+]

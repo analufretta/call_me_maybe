@@ -1,0 +1,122 @@
+[
+  {
+    "name": "fn_celsius_to_fahrenheit",
+    "description": "Convert a temperature from degrees Celsius to degrees Fahrenheit.",
+    "parameters": {
+      "celsius": {
+        "type": "number"
+      }
+    },
+    "returns": {
+      "type": "number"
+    }
+  },
+  {
+    "name": "fn_is_prime",
+    "description": "Check whether a whole number is a prime number.",
+    "parameters": {
+      "n": {
+        "type": "integer"
+      }
+    },
+    "returns": {
+      "type": "boolean"
+    }
+  },
+  {
+    "name": "fn_count_words",
+    "description": "Count how many words are in a piece of text.",
+    "parameters": {
+      "text": {
+        "type": "string"
+      }
+    },
+    "returns": {
+      "type": "integer"
+    }
+  },
+  {
+    "name": "fn_count_characters",
+    "description": "Count how many characters are in a piece of text, optionally ignoring spaces.",
+    "parameters": {
+      "text": {
+        "type": "string"
+      },
+      "ignore_spaces": {
+        "type": "boolean"
+      }
+    },
+    "returns": {
+      "type": "integer"
+    }
+  },
+  {
+    "name": "fn_repeat_string",
+    "description": "Repeat a string a given number of times, joined by a separator.",
+    "parameters": {
+      "s": {
+        "type": "string"
+      },
+      "times": {
+        "type": "integer"
+      },
+      "separator": {
+        "type": "string"
+      }
+    },
+    "returns": {
+      "type": "string"
+    }
+  },
+  {
+    "name": "fn_calculate_tip",
+    "description": "Calculate the tip for a restaurant bill given a tip percentage, optionally rounding up to the nearest whole amount.",
+    "parameters": {
+      "bill": {
+        "type": "number"
+      },
+      "percent": {
+        "type": "number"
+      },
+      "round_up": {
+        "type": "boolean"
+      }
+    },
+    "returns": {
+      "type": "number"
+    }
+  },
+  {
+    "name": "fn_set_alarm",
+    "description": "Set an alarm at a given hour and minute in 24-hour format, and choose whether it repeats daily.",
+    "parameters": {
+      "hour": {
+        "type": "integer"
+      },
+      "minute": {
+        "type": "integer"
+      },
+      "repeat_daily": {
+        "type": "boolean"
+      }
+    },
+    "returns": {
+      "type": "string"
+    }
+  },
+  {
+    "name": "fn_raise_to_power",
+    "description": "Raise a base number to the power of an exponent.",
+    "parameters": {
+      "base": {
+        "type": "number"
+      },
+      "exponent": {
+        "type": "number"
+      }
+    },
+    "returns": {
+      "type": "number"
+    }
+  }
+]
