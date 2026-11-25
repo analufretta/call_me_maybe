@@ -40,8 +40,8 @@ EXAMPLE = (
     "Function: fn_add_numbers\n"
     "Description: Add two numbers together.\n"
     "Parameters: a (number), b (number)\n"
-    "User request: What is the sum of minus seven and twelve?\n"
-    '{"name": "fn_add_numbers", "parameters": {"a": -7.0, "b": 12.0}}\n\n'
+    "User request: What is the sum of minus seven and 1/8?\n"
+    '{"name": "fn_add_numbers", "parameters": {"a": -7.0, "b": 1/8}}\n\n'
 
     "Example 2:\n"
     "Function: fn_add_numbers\n"

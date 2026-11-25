@@ -72,7 +72,7 @@ class Vocabulary(BaseModel):
     @cached_property
     def num_tokens(self) -> frozenset[int]:
         """Ids of the single-character tokens legal inside a number."""
-        chars = "-.0123456789"
+        chars = "-./0123456789"
         num_ids: set[int] = set()
 
         for char in chars:

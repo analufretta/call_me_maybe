@@ -4,6 +4,8 @@ Only number syntax is enforced, so the model can also convert numbers
 that are not written in digits (``minus five``, ``pi``, ``1/3``).
 """
 
+import re
+
 from llm_sdk import Small_LLM_Model as Model
 
 from src.vocabulary import Vocabulary
@@ -41,19 +43,31 @@ def free_mask(text: str, ptype: str, vocab: Vocabulary) -> set[int]:
     Stop tokens become legal once the text ends in a digit.
     """
     allowed = set(vocab.num_tokens)
+    last_char: bool = text[-1:].isdigit()
+    whole: bool = "." not in text and "/" not in text
     if text:
         allowed.discard(vocab.token_to_id("-"))
-    if ptype == "integer" or "." in text or "/" in text or text in ("", "-"):
+    if ptype == "integer" or not whole or not last_char:
         allowed.discard(vocab.token_to_id("."))
-    slash = vocab.token_to_id("/")
-    if (ptype == "number" and slash is not None and text[-1:].isdigit()
-            and "." not in text and "/" not in text):
-        allowed.add(slash)
+        allowed.discard(vocab.token_to_id("/"))
     if text.endswith("/"):
         allowed.discard(vocab.token_to_id("0"))
-    if text and text[-1].isdigit():
+    if last_char:
         allowed |= vocab.stop_tokens
     return allowed
+
+
+def continues_fraction(text: str, request: str) -> bool:
+    """Return whether ``request`` writes ``text`` as a fraction's numerator.
+
+    The model copies ``5/12`` but tends to stop after ``5``: a JSON number
+    never holds ``/``. When the digits so far are followed by ``/`` and a
+    non-zero digit in the request, the number must go on as a fraction.
+    """
+    digits = text.lstrip("-")
+    if not digits.isdigit():
+        return False
+    return re.search(rf"(?<![\d.]){digits}\/[1-9]", request) is not None
 
 
 def to_number(text: str, ptype: str) -> int | float:

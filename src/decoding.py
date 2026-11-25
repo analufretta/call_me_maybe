@@ -10,7 +10,9 @@ import json
 
 from llm_sdk import Small_LLM_Model as Model
 
-from src.nums import MAX_NUM_TOKENS, choose_sign, free_mask, to_number
+from src.nums import (
+    MAX_NUM_TOKENS, choose_sign, continues_fraction, free_mask, to_number
+)
 from src.strings import double_check, generate_string_bytes
 from src.vocabulary import Vocabulary
 
@@ -60,7 +62,8 @@ def fill_bool(
 
 
 def fill_num(
-    ids: list[int], model: Model, vocab: Vocabulary, ptype: str
+    ids: list[int], model: Model, vocab: Vocabulary, ptype: str,
+    request: str
 ) -> int | float:
     """Generate a number digit by digit and append its tokens to ``ids``.
 
@@ -73,7 +76,10 @@ def fill_num(
     """
     text = choose_sign(ids, model, vocab)
     for _ in range(MAX_NUM_TOKENS):
-        allowed = free_mask(text, ptype, vocab)
+        if ptype == "number" and continues_fraction(text, request):
+            allowed = {vocab.token_id["/"]}
+        else:
+            allowed = free_mask(text, ptype, vocab)
         tok = constrained_max(ids, allowed, model)
         if tok in vocab.stop_tokens:
             break
@@ -120,4 +126,4 @@ def fill(
     elif ptype == "string":
         return fill_str(ids, model, vocab, request)
     else:
-        return fill_num(ids, model, vocab, ptype)
+        return fill_num(ids, model, vocab, ptype, request)
