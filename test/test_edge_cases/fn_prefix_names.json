@@ -1,0 +1,38 @@
+[
+  {
+    "name": "fn_get_user",
+    "description": "Get a user by their username.",
+    "parameters": { "username": { "type": "string" } },
+    "returns": { "type": "string" }
+  },
+  {
+    "name": "fn_get_user_by_id",
+    "description": "Get a user by their numeric id.",
+    "parameters": { "user_id": { "type": "integer" } },
+    "returns": { "type": "string" }
+  },
+  {
+    "name": "fn_is_prime",
+    "description": "Check whether a whole number is a prime number.",
+    "parameters": { "n": { "type": "integer" } },
+    "returns": { "type": "boolean" }
+  },
+  {
+    "name": "fn_is_prime_twin",
+    "description": "Check whether two whole numbers are twin primes (both prime and 2 apart).",
+    "parameters": { "a": { "type": "integer" }, "b": { "type": "integer" } },
+    "returns": { "type": "boolean" }
+  },
+  {
+    "name": "fn_add",
+    "description": "Add two numbers together and return their sum.",
+    "parameters": { "a": { "type": "number" }, "b": { "type": "number" } },
+    "returns": { "type": "number" }
+  },
+  {
+    "name": "fn_add_numbers_in_text",
+    "description": "Find every number written in a text and return their total.",
+    "parameters": { "text": { "type": "string" } },
+    "returns": { "type": "number" }
+  }
+]

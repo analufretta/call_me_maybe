@@ -4,16 +4,12 @@ version = "0.1.0"
 description = "Function calling for LLMs via constrained decoding"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
+# Only what src/ imports. torch and transformers come in through llm-sdk;
+# the project never imports them (forbidden by the subject).
 dependencies = [
     "llm-sdk",
+    "numpy",
     "pydantic>=2",
-    "transformers==4.51.3",
-    # Intel Macs: last torch with wheels is 2.2.2 (needs numpy<2, Python<=3.12)
-    "torch==2.2.2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
-    "numpy<2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
-    # Everywhere else (school Linux, Python 3.13)
-    "torch==2.6.0; sys_platform != 'darwin' or platform_machine != 'x86_64'",
-    "numpy>=2.1; sys_platform != 'darwin' or platform_machine != 'x86_64'",
 ]
 
 [dependency-groups]
@@ -24,15 +20,41 @@ dev = [
 
 [tool.mypy]
 python_version = "3.10"
+# The top-level llm_sdk/ folder has no __init__.py, so mypy would read it as
+# a namespace package and shadow the installed llm_sdk (the inner folder).
+namespace_packages = false
+exclude = ['^\.venv/', '^llm_sdk/']
 
-[tool.flake8]
-max-line-length = 100
-extend-exclude = ["llm_sdk", ".venv"]
+# llm_sdk has type hints but no py.typed marker, so --strict would refuse to
+# read it. Follow it anyway so calls into Small_LLM_Model are still checked.
+[[tool.mypy.overrides]]
+module = ["llm_sdk", "llm_sdk.*"]
+follow_untyped_imports = true
+
+[tool.uv]
+# Pin llm-sdk's own dependencies so the lock resolves on every machine.
+constraint-dependencies = [
+    # Intel Macs: last torch with wheels is 2.2.2 (needs numpy<2, Python<=3.12)
+    "torch==2.2.2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    "numpy<2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+    # Everywhere else (school Linux, Python 3.13)
+    "torch==2.6.0; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "numpy>=2.1; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "transformers==4.51.3",
+]
 
 [tool.uv.workspace]
 members = [
     "llm_sdk",
 ]
 
+# Linux: CPU-only torch. The default PyPI build pulls ~2.5 GB of CUDA
+# libraries, and the model runs on CPU anyway.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
 [tool.uv.sources]
 llm-sdk = { workspace = true }
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]

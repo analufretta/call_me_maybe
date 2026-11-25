@@ -1,0 +1,20 @@
+[
+  {
+    "name": "",
+    "description": "Function with an empty name.",
+    "parameters": { "text": { "type": "string" } },
+    "returns": { "type": "string" }
+  },
+  {
+    "name": "fn_echo",
+    "description": "Return the text unchanged. Has an empty parameter name.",
+    "parameters": { "": { "type": "string" } },
+    "returns": { "type": "string" }
+  },
+  {
+    "name": "   ",
+    "description": "Function whose name is only spaces.",
+    "parameters": {},
+    "returns": { "type": "string" }
+  }
+]

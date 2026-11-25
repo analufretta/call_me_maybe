@@ -42,6 +42,11 @@ def load_functions(path: Path) -> list[FunctionDef]:
         raise SystemExit(f"error: bad structure in {path}: {e}")
     if not functions:
         raise SystemExit(f"error: no functions defined in {path}")
+    names = [f.name for f in functions]
+    duplicates = sorted(({n for n in names if names.count(n) > 1}))
+    if duplicates:
+        raise SystemExit("error: duplicate function names in"
+                         f" {path}: {duplicates}")
     return functions
 
 

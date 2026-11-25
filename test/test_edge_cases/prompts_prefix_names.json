@@ -1,0 +1,8 @@
+[
+  { "prompt": "Get the user with username 'ana_barros'" },
+  { "prompt": "Get the user whose id is 42" },
+  { "prompt": "Is 13 a prime number?" },
+  { "prompt": "Are 11 and 13 twin primes?" },
+  { "prompt": "Add 4 and 9" },
+  { "prompt": "Add up all the numbers in 'I bought 3 apples and 12 pears'" }
+]

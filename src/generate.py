@@ -1,5 +1,7 @@
 """Constrained generation: pick a function and build its call object."""
 
+import json
+
 from llm_sdk import Small_LLM_Model as Model
 
 from src.decoding import constrained_max, fill, force
@@ -8,11 +10,19 @@ from src.prompts import prompt_function, prompt_output
 from src.vocabulary import Vocabulary
 
 
-def allowed_tokens(
+def allowed_fntokens(
     functions: list[FunctionDef], model: Model
 ) -> dict[str, list[int]]:
-    """Map each function name to its token path."""
-    return {f.name: model.encode(f.name)[0].tolist() for f in functions}
+    """Map each function name to its token path, closed by a quote.
+
+    The closing quote makes "stop here" a token the model can choose, so a
+    name that is a token prefix of another (fn_get_user / fn_get_user_by_id)
+    stays selectable.
+    """
+    quote = model.encode('"')[0].tolist()
+    return {
+        f.name: model.encode(f.name)[0].tolist() + quote for f in functions
+    }
 
 
 def pick_function(
@@ -27,7 +37,7 @@ def pick_function(
     function -- the model only steers *between* valid names, never off them.
     """
     base_call = prompt_function(prompt, functions)
-    legal_paths = allowed_tokens(functions, model)
+    legal_paths = allowed_fntokens(functions, model)
     base_ids = model.encode(base_call)[0].tolist()
     chosen: list[int] = []
 
@@ -64,7 +74,7 @@ def generate_output(
     for i, (param, ptype) in enumerate(function.parameters.items()):
         if i:
             force(ids, ", ", model)
-        force(ids, f'"{param}": ', model)
+        force(ids, f"{json.dumps(param)}: ", model)
         params[param] = fill(ids, model, vocab, ptype.type, prompt.prompt)
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params

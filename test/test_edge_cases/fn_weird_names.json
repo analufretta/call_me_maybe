@@ -4,11 +4,5 @@
     "description": "Say hi to someone. Name contains quotes and a space.",
     "parameters": { "who's name": { "type": "string" }, "n{}": { "type": "integer" } },
     "returns": { "type": "string" }
-  },
-  {
-    "name": "",
-    "description": "",
-    "parameters": { "": { "type": "string" } },
-    "returns": { "type": "string" }
   }
 ]

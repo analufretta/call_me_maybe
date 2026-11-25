@@ -37,6 +37,8 @@ make run FUNCTIONS=does/not/exist.json      # missing file
 | `fn_wrong_field_types.json` | `name` int, `description` null, `returns` string |
 | `fn_unsupported_type.json` | `type: "array"` |
 | `fn_type_wrong_case.json` | `"Number"` / `"NUMBER"` |
+| `fn_duplicate_names.json` | two functions share a name |
+| `fn_empty_names.json` | empty / blank function name, empty param name |
 | `prompts_not_a_list.json` | single object instead of list |
 | `prompts_plain_strings.json` | list of strings, not `{"prompt": ...}` |
 | `prompts_missing_key.json` | `text` instead of `prompt` |
@@ -50,10 +52,11 @@ make run FUNCTIONS=does/not/exist.json      # missing file
 | `fn_single_function.json` | only one function | unrelated prompts still forced to it |
 | `fn_many_params.json` | 8 mixed-type params | all keys present, types correct |
 | `fn_extra_fields.json` | unknown keys (`default`, `version`) | ignored, no crash |
-| `fn_duplicate_names.json` | two functions share a name | ambiguous — currently accepted |
-| `fn_weird_names.json` | quotes/braces/empty in names | output JSON still escaped and valid |
+| `fn_weird_names.json` | quotes/braces/spaces in names | output JSON still escaped and valid |
+| `fn_prefix_names.json` | name whose tokens start another name (`fn_get_user` / `fn_get_user_by_id`) | with `prompts_prefix_names.json`: short names must be selectable |
 | `prompts_empty_list.json` | `[]` | output file is `[]` |
 | `prompts_extra_keys.json` | extra keys per prompt | ignored |
 | `prompts_tricky_content.json` | empty/blank prompt, injection, unknown function, unrelated request, two requests in one, newlines/tabs, JSON in prompt, NaN/Infinity, 1e308, hex/binary, locale separators, too few/many args, other language | no crash; every output is schema-valid |
 | `prompts_very_long.json` | ~20k-char prompt | context length / speed |
+| `prompts_prefix_names.json` | one prompt per short and long name | pair with `fn_prefix_names.json` |
 | `prompts_special_functions.json` | prompts for `fn_no_parameters.json`, `fn_many_params.json`, `fn_weird_names.json` | pair with those definition files |

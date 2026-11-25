@@ -67,7 +67,8 @@ Bad function definitions:
 for f in fn_empty_list fn_not_a_list fn_item_not_object fn_missing_name \
          fn_missing_description fn_missing_parameters fn_missing_returns \
          fn_param_missing_type fn_parameters_as_list fn_wrong_field_types \
-         fn_unsupported_type fn_type_wrong_case; do
+         fn_unsupported_type fn_type_wrong_case fn_duplicate_names \
+         fn_empty_names; do
   echo "== $f"; make run FUNCTIONS=$E/$f.json
 done
 ```
@@ -94,8 +95,13 @@ make run FUNCTIONS=$E/fn_many_params.json    INPUT=$E/prompts_special_functions.
 make run FUNCTIONS=$E/fn_weird_names.json    INPUT=$E/prompts_special_functions.json OUTPUT=$O/weird_names.json
 make run FUNCTIONS=$E/fn_single_function.json                                        OUTPUT=$O/single_fn.json
 make run FUNCTIONS=$E/fn_extra_fields.json                                           OUTPUT=$O/extra_fields.json
-make run FUNCTIONS=$E/fn_duplicate_names.json                                        OUTPUT=$O/duplicates.json
+make run FUNCTIONS=$E/fn_prefix_names.json   INPUT=$E/prompts_prefix_names.json      OUTPUT=$O/prefix_names.json
 ```
+
+Check `prefix_names.json`: each prompt gets its own function. Before the
+closing-quote fix in `allowed_fntokens`, `fn_get_user`, `fn_is_prime` and
+`fn_add` could never be chosen (their tokens are the first tokens of the
+longer name).
 
 ## 5. Output path edge cases
 
