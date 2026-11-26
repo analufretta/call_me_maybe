@@ -19,7 +19,7 @@ dev = [
 ]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 # The top-level llm_sdk/ folder has no __init__.py, so mypy would read it as
 # a namespace package and shadow the installed llm_sdk (the inner folder).
 namespace_packages = false

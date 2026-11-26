@@ -6,12 +6,6 @@ FUNCTIONS ?= data/input/functions_definition.json
 INPUT     ?= data/input/function_calling_tests.json
 OUTPUT    ?= data/output/function_calling_results.json
 
-# Intel Macs can't run torch on Python 3.13 (no wheels), so use 3.12 there.
-# Everywhere else, uv follows .python-version.
-ifeq ($(shell uname -s)-$(shell uname -m),Darwin-x86_64)
-export UV_PYTHON := 3.12
-endif
-
 MYPY_FLAGS =--warn-return-any --warn-unused-ignores --ignore-missing-imports \
              --disallow-untyped-defs --check-untyped-defs
 
