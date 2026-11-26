@@ -19,9 +19,6 @@ env/
 # uv
 # (uv.lock IS committed — do not ignore it)
 
-# Program output (generated during review)
-data/output/
-
 # Editor / OS
 .vscode/
 .idea/
