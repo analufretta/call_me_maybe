@@ -1,8 +1,6 @@
 # How to test
 
-Run everything from the repo root. Use `make run`, not bare `uv run`: the
-Makefile pins Python 3.12 on Intel Macs, and a bare `uv run` rebuilds `.venv`
-with the wrong Python.
+Run everything from the repo root.
 
 All results go to `test/output/`. The folder is created on the first run.
 

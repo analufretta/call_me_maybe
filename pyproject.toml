@@ -35,12 +35,8 @@ ignore_missing_imports = true
 [tool.uv]
 # Pin llm-sdk's own dependencies so the lock resolves on every machine.
 constraint-dependencies = [
-    # Intel Macs: last torch with wheels is 2.2.2 (needs numpy<2, Python<=3.12)
-    "torch==2.2.2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
-    "numpy<2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
-    # Everywhere else (school Linux, Python 3.13)
-    "torch==2.6.0; sys_platform != 'darwin' or platform_machine != 'x86_64'",
-    "numpy>=2.1; sys_platform != 'darwin' or platform_machine != 'x86_64'",
+    "torch==2.6.0",
+    "numpy>=2.1",
     "transformers==4.51.3",
 ]
 

@@ -289,9 +289,8 @@ reversed GPT-2 byte table turns any token back into its raw bytes. The masks
 
 ## Performance analysis
 
-Measured on an Intel Core i7-9750H laptop (6 cores, CPU only, no GPU),
-before the string-opening and integer-decimal changes described in
-*Challenges faced*:
+Measured on a 6-core laptop CPU (no GPU), before the string-opening and
+integer-decimal changes described in *Challenges faced*:
 
 | Input | Prompts | Right function | Right arguments | Time |
 |---|---|---|---|---|
