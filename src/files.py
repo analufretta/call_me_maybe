@@ -30,23 +30,23 @@ def load_functions(path: Path) -> list[FunctionDef]:
     """
     try:
         raw = path.read_text()
-    except (OSError, UnicodeDecodeError) as e:
-        raise SystemExit(f"error: file {path} is invalid: {e}")
+    except (OSError, UnicodeDecodeError):
+        raise SystemExit(f"ERROR: file ``{path}`` is invalid.\n\n")
     try:
         data = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise SystemExit(f"error: invalid JSON in {path}: {e}")
+    except json.JSONDecodeError:
+        raise SystemExit(f"ERROR: invalid JSON in ``{path}``.\n\n")
     try:
         functions = _FUNCTIONS.validate_python(data)
-    except ValidationError as e:
-        raise SystemExit(f"error: bad structure in {path}: {e}")
+    except ValidationError:
+        raise SystemExit(f"ERROR: bad structure in ``{path}``.\n\n")
     if not functions:
-        raise SystemExit(f"error: no functions defined in {path}")
+        raise SystemExit(f"ERROR: no functions defined in ``{path}``")
     names = [f.name for f in functions]
     duplicates = sorted(({n for n in names if names.count(n) > 1}))
     if duplicates:
-        raise SystemExit("error: duplicate function names in"
-                         f" {path}: {duplicates}")
+        raise SystemExit("ERROR: duplicate function names in"
+                         f" ``{path}``: {duplicates}")
     return functions
 
 
@@ -63,18 +63,18 @@ def load_vocab(path: Path) -> Vocabulary:
     """
     try:
         raw = path.read_text()
-    except (OSError, UnicodeDecodeError) as e:
-        raise SystemExit(f"error: file {path} is invalid: {e}")
+    except (OSError, UnicodeDecodeError):
+        raise SystemExit(f"ERROR: file ``{path}`` is invalid.\n\n")
     try:
         data = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise SystemExit(f"error: invalid JSON in {path}: {e}")
+    except json.JSONDecodeError:
+        raise SystemExit(f"ERROR: invalid JSON in ``{path}``.\n\n")
     try:
         token_id = _VOCAB.validate_python(data)
         id_token = {i: tok for tok, i in token_id.items()}
         return Vocabulary(token_id=token_id, id_token=id_token)
-    except ValidationError as e:
-        raise SystemExit(f"error: bad structure in {path}: {e}")
+    except ValidationError:
+        raise SystemExit(f"ERROR: bad structure in ``{path}``.\n\n")
 
 
 def load_prompts(path: Path) -> list[TestPrompt]:
@@ -91,16 +91,16 @@ def load_prompts(path: Path) -> list[TestPrompt]:
     """
     try:
         raw = path.read_text()
-    except (OSError, UnicodeDecodeError) as e:
-        raise SystemExit(f"error: file {path} is invalid: {e}")
+    except (OSError, UnicodeDecodeError):
+        raise SystemExit(f"ERROR: file ``{path}`` is invalid.\n\n")
     try:
         data = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise SystemExit(f"error: invalid JSON in {path}: {e}")
+    except json.JSONDecodeError:
+        raise SystemExit(f"ERROR: invalid JSON in ``{path}``.\n\n")
     try:
         return _PROMPTS.validate_python(data)
-    except ValidationError as e:
-        raise SystemExit(f"error: bad structure in {path}: {e}")
+    except ValidationError:
+        raise SystemExit(f"ERROR: bad structure in ``{path}``.\n\n")
 
 
 def write_output(path: Path, results: list[dict[str, object]]) -> None:
@@ -115,5 +115,5 @@ def write_output(path: Path, results: list[dict[str, object]]) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
             json.dump(results, f, indent=2)
-    except OSError as e:
-        raise SystemExit(f"error: cannot write output to {path}: {e}")
+    except OSError:
+        raise SystemExit(f"ERROR: cannot write output to ``{path}``.\n\n")

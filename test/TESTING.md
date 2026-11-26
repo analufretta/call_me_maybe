@@ -7,8 +7,8 @@ with the wrong Python.
 Shortcuts used below:
 
 ```sh
-E=test/test_edge_cases
-O=test/output
+EDGE=test/test_edge_cases
+OUT=test/output
 ```
 
 ## 0. Setup and lint
@@ -22,8 +22,8 @@ make lint
 
 ```sh
 time make run
-time make run INPUT=data/input/test_num.json OUTPUT=$O/test_num_results.json
-time make run INPUT=data/input/test_str.json OUTPUT=$O/test_str_results.json
+time make run INPUT=data/input/test_num.json OUTPUT=$OUT/test_num_results.json
+time make run INPUT=data/input/test_str.json OUTPUT=$OUT/test_str_results.json
 ```
 
 Check: `time` stays under 5 minutes, and every prompt has a correct function and arguments.
@@ -33,7 +33,7 @@ Check: `time` stays under 5 minutes, and every prompt has a correct function and
 ```sh
 time make run FUNCTIONS=test/input/test_function_definitions.json \
               INPUT=test/input/test_function_calling.json \
-              OUTPUT=$O/test_function_calling_results.json
+              OUTPUT=$OUT/test_function_calling_results.json
 ```
 
 Check: right function chosen (`count_words` vs `count_characters`),
@@ -47,8 +47,8 @@ Missing file and wrong-type paths:
 ```sh
 make run FUNCTIONS=does/not/exist.json
 make run INPUT=does/not/exist.json
-make run FUNCTIONS=$E/a_directory.json
-make run INPUT=$E/a_directory.json
+make run FUNCTIONS=$EDGE/a_directory.json
+make run INPUT=$EDGE/a_directory.json
 ```
 
 Broken files (each one, as both FUNCTIONS and INPUT):
@@ -56,8 +56,8 @@ Broken files (each one, as both FUNCTIONS and INPUT):
 ```sh
 for f in empty_file not_json malformed_trailing_comma malformed_unclosed \
          malformed_single_quotes invalid_utf8 utf8_bom; do
-  echo "== FUNCTIONS=$f"; make run FUNCTIONS=$E/$f.json
-  echo "== INPUT=$f";     make run INPUT=$E/$f.json
+  echo "== FUNCTIONS=$f"; make run FUNCTIONS=$EDGE/$f.json
+  echo "== INPUT=$f";     make run INPUT=$EDGE/$f.json
 done
 ```
 
@@ -69,7 +69,7 @@ for f in fn_empty_list fn_not_a_list fn_item_not_object fn_missing_name \
          fn_param_missing_type fn_parameters_as_list fn_wrong_field_types \
          fn_unsupported_type fn_type_wrong_case fn_duplicate_names \
          fn_empty_names; do
-  echo "== $f"; make run FUNCTIONS=$E/$f.json
+  echo "== $f"; make run FUNCTIONS=$EDGE/$f.json
 done
 ```
 
@@ -78,24 +78,24 @@ Bad prompt files:
 ```sh
 for f in prompts_not_a_list prompts_plain_strings prompts_missing_key \
          prompts_wrong_value_type; do
-  echo "== $f"; make run INPUT=$E/$f.json
+  echo "== $f"; make run INPUT=$EDGE/$f.json
 done
 ```
 
 ## 4. Pipeline edge cases: must run and give valid output
 
 ```sh
-make run INPUT=$E/prompts_empty_list.json      OUTPUT=$O/empty_list.json   # expect []
-make run INPUT=$E/prompts_extra_keys.json      OUTPUT=$O/extra_keys.json
-make run INPUT=$E/prompts_tricky_content.json  OUTPUT=$O/tricky.json
-time make run INPUT=$E/prompts_very_long.json  OUTPUT=$O/very_long.json
+make run INPUT=$EDGE/prompts_empty_list.json      OUTPUT=$OUT/empty_list.json   # expect []
+make run INPUT=$EDGE/prompts_extra_keys.json      OUTPUT=$OUT/extra_keys.json
+make run INPUT=$EDGE/prompts_tricky_content.json  OUTPUT=$OUT/tricky.json
+time make run INPUT=$EDGE/prompts_very_long.json  OUTPUT=$OUT/very_long.json
 
-make run FUNCTIONS=$E/fn_no_parameters.json  INPUT=$E/prompts_special_functions.json OUTPUT=$O/no_params.json
-make run FUNCTIONS=$E/fn_many_params.json    INPUT=$E/prompts_special_functions.json OUTPUT=$O/many_params.json
-make run FUNCTIONS=$E/fn_weird_names.json    INPUT=$E/prompts_special_functions.json OUTPUT=$O/weird_names.json
-make run FUNCTIONS=$E/fn_single_function.json                                        OUTPUT=$O/single_fn.json
-make run FUNCTIONS=$E/fn_extra_fields.json                                           OUTPUT=$O/extra_fields.json
-make run FUNCTIONS=$E/fn_prefix_names.json   INPUT=$E/prompts_prefix_names.json      OUTPUT=$O/prefix_names.json
+make run FUNCTIONS=$EDGE/fn_no_parameters.json  INPUT=$EDGE/prompts_special_functions.json OUTPUT=$OUT/no_params.json
+make run FUNCTIONS=$EDGE/fn_many_params.json    INPUT=$EDGE/prompts_special_functions.json OUTPUT=$OUT/many_params.json
+make run FUNCTIONS=$EDGE/fn_weird_names.json    INPUT=$EDGE/prompts_special_functions.json OUTPUT=$OUT/weird_names.json
+make run FUNCTIONS=$EDGE/fn_single_function.json                                        OUTPUT=$OUT/single_fn.json
+make run FUNCTIONS=$EDGE/fn_extra_fields.json                                           OUTPUT=$OUT/extra_fields.json
+make run FUNCTIONS=$EDGE/fn_prefix_names.json   INPUT=$EDGE/prompts_prefix_names.json      OUTPUT=$OUT/prefix_names.json
 ```
 
 Check `prefix_names.json`: each prompt gets its own function. Before the
@@ -106,15 +106,15 @@ longer name).
 ## 5. Output path edge cases
 
 ```sh
-make run OUTPUT=$O/new/nested/dir/results.json   # parent dirs created
-make run OUTPUT=$O                               # output is a directory: expect error
+make run OUTPUT=$OUT/new/nested/dir/results.json   # parent dirs created
+make run OUTPUT=$OUT                               # output is a directory: expect error
 make run OUTPUT=/results.json                    # no permission: expect error
 ```
 
 ## 6. Check every output file is valid JSON with the right keys
 
 ```sh
-for f in $O/*.json data/output/*.json; do
+for f in $OUT/*.json data/output/*.json; do
   python3 -c "
 import json, sys
 d = json.load(open('$f'))

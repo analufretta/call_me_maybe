@@ -16,30 +16,30 @@ install:
 	uv sync --locked --link-mode=copy
 
 run:
-	uv run python -m src \
+	@uv run python -m src \
 		--functions_definition $(FUNCTIONS) \
 		--input $(INPUT) \
 		--output $(OUTPUT)
 
 debug:
-	uv run python -m pdb -m src \
+	@uv run python -m pdb -m src \
 		--functions_definition $(FUNCTIONS) \
 		--input $(INPUT) \
 		--output $(OUTPUT)
 
 clean:
-	rm -rf __pycache__ */__pycache__ */*/__pycache__
-	rm -rf .mypy_cache .pytest_cache
-	find . -type f -name '*.pyc' -delete
+	@rm -rf __pycache__ */__pycache__ */*/__pycache__
+	@rm -rf .mypy_cache .pytest_cache
+	@find . -type f -name '*.pyc' -delete
 
 fclean: clean
-	rm -rf .venv
+	@rm -rf .venv
 
 re: fclean install
 
 lint:
-	uv run flake8 . --extend-exclude .venv/,llm_sdk/
-	uv run mypy . --exclude '(\.venv|llm_sdk)/' --warn-return-any \
+	@uv run flake8 . --extend-exclude .venv/,llm_sdk/
+	@uv run mypy . --exclude '(\.venv|llm_sdk)/' --warn-return-any \
 	--warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
 	--check-untyped-defs
 
