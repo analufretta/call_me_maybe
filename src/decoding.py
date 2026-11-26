@@ -7,6 +7,7 @@ by construction. Every model step goes through ``constrained_max``.
 """
 
 import json
+from collections.abc import Set
 
 from llm_sdk import Small_LLM_Model as Model
 
@@ -18,7 +19,7 @@ from src.vocabulary import Vocabulary
 
 
 def constrained_max(
-    ids: list[int], allowed: set[int], model: Model
+    ids: list[int], allowed: Set[int], model: Model
 ) -> int:
     """Pick the max-logit token within ``allowed`` for context ``ids``.
 
@@ -97,7 +98,7 @@ def fill_str(
 ) -> str:
     """Write a JSON string value into ``ids`` and return its Python value."""
     content_start = len(ids)
-    tok = constrained_max(ids, set(vocab.str_open_tokens), model)
+    tok = constrained_max(ids, vocab.str_open_tokens, model)
     ids.append(tok)
     after_quote = vocab.token_bytes(tok)[2:]
 
