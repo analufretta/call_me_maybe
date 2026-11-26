@@ -16,6 +16,9 @@ dist/
 venv/
 env/
 
+# Any output directories
+**/output/
+
 # uv
 # (uv.lock IS committed — do not ignore it)
 
