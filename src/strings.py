@@ -41,6 +41,7 @@ def generate_string_bytes(
     content_bytes = bytearray()
     escaped = False
     first_tok = after_quote
+    tok: int | None
 
     for _ in range(MAX_STR_TOKENS):
         if first_tok:
