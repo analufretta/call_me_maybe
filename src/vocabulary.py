@@ -96,3 +96,11 @@ class Vocabulary(BaseModel):
     def bool_tokens(self) -> tuple[int, int]:
         """Ids of the ``true`` and ``false`` tokens, as ``(true, false)``."""
         return self.token_id["true"], self.token_id["false"]
+
+    @cached_property
+    def str_open_tokens(self) -> frozenset[int]:
+        """Ids of tokens that open a JSOn string after ``"``."""
+        return frozenset(
+            i for i in self.id_token
+            if self.token_bytes(i).startswith(b' "')
+        )

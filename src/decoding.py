@@ -96,10 +96,12 @@ def fill_str(
     ids: list[int], model: Model, vocab: Vocabulary, request: str
 ) -> str:
     """Write a JSON string value into ``ids`` and return its Python value."""
-    force(ids, '"', model)
     content_start = len(ids)
+    tok = constrained_max(ids, vocab.str_open_tokens, model)
+    ids.append(tok)
+    after_quote = vocab.token_bytes(tok[2:])
 
-    content_bytes = generate_string_bytes(ids, model, vocab)
+    content_bytes = generate_string_bytes(ids, model, vocab, after_quote)
     try:
         content = content_bytes.decode("utf-8")
     except UnicodeDecodeError as exc:
@@ -110,7 +112,7 @@ def fill_str(
         content = json.dumps(value, ensure_ascii=False)[1:-1]
 
     # Replace the generated tokens with the exact content and delimiter.
-    ids[content_start:] = model.encode(content)[0].tolist()
+    ids[content_start:] = model.encode(f' "{content}')[0].tolist()
     force(ids, '"', model)
 
     return value

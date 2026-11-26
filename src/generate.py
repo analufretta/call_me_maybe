@@ -74,7 +74,8 @@ def generate_output(
     for i, (param, ptype) in enumerate(function.parameters.items()):
         if i:
             force(ids, ", ", model)
-        force(ids, f"{json.dumps(param)}: ", model)
+        separator = ":" if ptype.type == "string" else ": "
+        force(ids, f"{json.dumps(param)}{separator}", model)
         params[param] = fill(ids, model, vocab, ptype.type, prompt.prompt)
     return {
         "prompt": prompt.prompt, "name": function.name, "parameters": params

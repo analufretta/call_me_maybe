@@ -24,7 +24,8 @@ QUOTEDTXT = re.compile(r"(?<!\w)'(.*?)'(?!\w)|(?<!\w)\"(.*?)\"(?!\w)")
 
 
 def generate_string_bytes(
-    ids: list[int], model: Model, vocab: Vocabulary
+    ids: list[int], model: Model,
+    vocab: Vocabulary, after_quote: bytes = b""
 ) -> bytes:
     """Generate tokens until an unescaped closing quote appears.
 
@@ -39,11 +40,16 @@ def generate_string_bytes(
     """
     content_bytes = bytearray()
     escaped = False
+    first_tok = after_quote
 
     for _ in range(MAX_STR_TOKENS):
-        logits = np.asarray(model.get_logits_from_input_ids(ids))
-        tok = int(np.argmax(logits[:vocab.size]))
-        token_bytes = vocab.token_bytes(tok)
+        if first_tok:
+            token_bytes, tok = first_tok, None
+            first_tok = b""
+        else:
+            logits = np.asarray(model.get_logits_from_input_ids(ids))
+            tok = int(np.argmax(logits[:vocab.size]))
+            token_bytes = vocab.token_bytes(tok)
 
         closing_at = None
         for i, byte in enumerate(token_bytes):
@@ -59,7 +65,8 @@ def generate_string_bytes(
             content_bytes.extend(token_bytes[:closing_at])
             return bytes(content_bytes)
 
-        ids.append(tok)
+        if tok is not None:
+            ids.append(tok)
         content_bytes.extend(token_bytes)
 
     raise ValueError(
