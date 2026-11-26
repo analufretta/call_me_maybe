@@ -25,11 +25,12 @@ python_version = "3.10"
 namespace_packages = false
 exclude = ['^\.venv/', '^llm_sdk/']
 
-# llm_sdk has type hints but no py.typed marker, so --strict would refuse to
-# read it. Follow it anyway so calls into Small_LLM_Model are still checked.
+# llm_sdk has no py.typed marker, so --strict refuses to import it. Treat it
+# as untyped instead: following it would make mypy load all of torch and
+# transformers, which takes minutes.
 [[tool.mypy.overrides]]
 module = ["llm_sdk", "llm_sdk.*"]
-follow_untyped_imports = true
+ignore_missing_imports = true
 
 [tool.uv]
 # Pin llm-sdk's own dependencies so the lock resolves on every machine.
