@@ -99,7 +99,7 @@ class Vocabulary(BaseModel):
 
     @cached_property
     def str_open_tokens(self) -> frozenset[int]:
-        """Ids of tokens that open a JSON string after ``"``."""
+        """Ids of tokens that open a JSON string after ``:``."""
         return frozenset(
             i for i in self.id_token
             if self.token_bytes(i).startswith(b' "')
