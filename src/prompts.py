@@ -60,6 +60,14 @@ EXAMPLE = (
     '{"name": "fn_substitute_string_with_regex", '
     '"parameters": {"source_string": "Programming is fun]", '
     '"regex": "[aeiouAEIOU]", "replacement": "*"}}\n\n'
+
+    "Example 4:\n"
+    "Function: fn_send_message\n"
+    "Description: Send a text message to a user.\n"
+    "Parameters: user (string), message (string)\n"
+    'User request: Send Bob the message: Say "thanks" to the team\n'
+    '{"name": "fn_send_message", "parameters": {"user": "Bob", '
+    '"message": "Say \\"thanks\\" to the team"}}\n\n'
 )
 
 
