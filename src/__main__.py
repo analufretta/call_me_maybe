@@ -7,7 +7,9 @@ from pathlib import Path
 
 from llm_sdk import Small_LLM_Model as Model
 
-from src.files import load_functions, load_prompts, load_vocab, write_output
+from src.files import (
+    check_output, load_functions, load_prompts, load_vocab, write_output
+)
 from src.generate import pick_function, generate_output
 
 
@@ -34,6 +36,7 @@ def main() -> None:
     args = parse()
     functions = load_functions(args.functions_definition)
     prompts = load_prompts(args.input)
+    check_output(args.output)
 
     try:
         model = Model(device="cpu")
