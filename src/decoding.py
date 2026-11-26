@@ -12,7 +12,8 @@ from collections.abc import Set
 from llm_sdk import Small_LLM_Model as Model
 
 from src.nums import (
-    MAX_NUM_TOKENS, choose_sign, continues_fraction, free_mask, to_number
+    MAX_NUM_TOKENS, choose_sign, continues_fraction, ends_at_decimal,
+    free_mask, to_number
 )
 from src.strings import double_check, generate_string_bytes
 from src.vocabulary import Vocabulary
@@ -77,6 +78,8 @@ def fill_num(
     """
     text = choose_sign(ids, model, vocab)
     for _ in range(MAX_NUM_TOKENS):
+        if ptype == "integer" and ends_at_decimal(text, request):
+            break
         if ptype == "number" and continues_fraction(text, request):
             allowed = {vocab.token_id["/"]}
         else:

@@ -103,6 +103,22 @@ def load_prompts(path: Path) -> list[TestPrompt]:
         raise SystemExit(f"ERROR: bad structure in ``{path}``.\n\n")
 
 
+def check_output(path: Path) -> None:
+    """Exit early if ``path`` cannot be written.
+
+    Runs before the model loads, so a bad output path does not throw away
+    minutes of generation at the very end. Creates the parent directory if
+    missing, as ``write_output`` would.
+    """
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        raise SystemExit(f"ERROR: cannot write output to ``{path}``.\n\n")
+    target = path if path.exists() else path.parent
+    if path.is_dir() or not os.access(target, os.W_OK):
+        raise SystemExit(f"ERROR: cannot write output to ``{path}``.\n\n")
+
+
 def write_output(path: Path, results: list[dict[str, object]]) -> None:
     """Write the result objects to ``path`` as a single JSON array.
 

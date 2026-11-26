@@ -15,11 +15,13 @@ install:
 	{ echo "uv missing. Installing..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }; \
 	uv sync --locked --link-mode=copy
 
+# `|| true`: the program prints its own error message, so make's extra
+# "make: *** [run] Error 1" line is suppressed.
 run:
 	@uv run python -m src \
 		--functions_definition $(FUNCTIONS) \
 		--input $(INPUT) \
-		--output $(OUTPUT)
+		--output $(OUTPUT) || true
 
 debug:
 	@uv run python -m pdb -m src \

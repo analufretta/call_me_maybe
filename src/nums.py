@@ -70,6 +70,19 @@ def continues_fraction(text: str, request: str) -> bool:
     return re.search(rf"(?<![\d.]){digits}\/[1-9]", request) is not None
 
 
+def ends_at_decimal(text: str, request: str) -> bool:
+    """Return whether ``request`` writes ``text`` followed by a decimal part.
+
+    An integer mask forbids ``.``, so for ``Is 4.5 prime?`` the model keeps
+    adding digits after ``4`` and never stops. When the digits so far are
+    followed by ``.`` and a digit in the request, the integer ends here.
+    """
+    digits = text.lstrip("-")
+    if not digits.isdigit():
+        return False
+    return re.search(rf"(?<![\d.]){digits}\.\d", request) is not None
+
+
 def to_number(text: str, ptype: str) -> int | float:
     """Return the value of the generated ``text``; a fraction is divided."""
     if "/" in text:

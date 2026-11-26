@@ -38,19 +38,13 @@ RULES = (
 EXAMPLE = (
     "Example 1:\n"
     "Function: fn_add_numbers\n"
-    "Description: Add two numbers together.\n"
-    "Parameters: a (number), b (number)\n"
-    "User request: What is the sum of minus seven and 1/8?\n"
-    '{"name": "fn_add_numbers", "parameters": {"a": -7.0, "b": 1/8}}\n\n'
+    "Description: Add three numbers together.\n"
+    "Parameters: a (number), b (number), c(number)\n"
+    "User request: What is the sum of minus seven, 256 and negative 1/8?\n"
+    '{"name": "fn_add_numbers", "parameters": {"a": -7.0, '
+    '"b": 256.0 "c": -1/8}}\n\n'
 
     "Example 2:\n"
-    "Function: fn_add_numbers\n"
-    "Description: Add two numbers together.\n"
-    "Parameters: a (number), b (number)\n"
-    "User request: Add 265 and negative four\n"
-    '{"name": "fn_add_numbers", "parameters": {"a": 265.0, "b": -4.0}}\n\n'
-
-    "Example 3:\n"
     "Function: fn_substitute_string_with_regex\n"
     "Description: Replace regex matches in a string.\n"
     "Parameters: source_string (string), regex (string), "
@@ -61,7 +55,7 @@ EXAMPLE = (
     '"parameters": {"source_string": "Programming is fun]", '
     '"regex": "[aeiouAEIOU]", "replacement": "*"}}\n\n'
 
-    "Example 4:\n"
+    "Example 3:\n"
     "Function: fn_send_message\n"
     "Description: Send a text message to a user.\n"
     "Parameters: user (string), message (string)\n"
