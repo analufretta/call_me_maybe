@@ -13,7 +13,10 @@ install:
 	@export PATH="$$HOME/.local/bin:$$PATH"; \
 	command -v uv >/dev/null 2>&1 || \
 	{ echo "uv missing. Installing..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }; \
-	uv sync --locked --link-mode=copy
+	uv sync --locked --link-mode=copy && \
+	if [ "$$(uname -s)" = "Darwin" ]; then \
+		chflags nohidden .venv/lib/python*/site-packages/*.pth; \
+	fi
 
 # `|| true`: the program prints its own error message, so make's extra
 # "make: *** [run] Error 1" line is suppressed.
